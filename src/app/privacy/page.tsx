@@ -17,7 +17,7 @@ export default async function PrivacyPolicyPage() {
 
   return (
     <div className="min-h-screen bg-[#FAF8F5] dark:bg-gray-950">
-      <section className="mx-auto max-w-3xl px-6 py-16">
+      <main className="mx-auto max-w-3xl px-6 py-16">
         <Link
           href="/"
           className="text-sm font-medium text-blue-600 underline underline-offset-2 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
@@ -40,7 +40,7 @@ export default async function PrivacyPolicyPage() {
             </div>
           ))}
         </div>
-      </section>
+      </main>
       <Footer />
     </div>
   );

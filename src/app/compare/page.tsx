@@ -186,7 +186,7 @@ export default function ComparePage() {
         </p>
 
         {/* Comparison table */}
-        <div className="mt-8 overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-800">
+        <div className="mt-8 overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-800" tabIndex={0} role="region" aria-label="Comparison table">
           <table className="w-full min-w-[720px] border-collapse text-left text-sm">
             <thead>
               <tr className="bg-gray-100/70 dark:bg-gray-900">

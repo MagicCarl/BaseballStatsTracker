@@ -98,11 +98,11 @@ export default function GameChangerVsPage() {
         </p>
 
         <Section title="Head to head">
-          <div className="mt-2 overflow-x-auto">
+          <div className="mt-2 overflow-x-auto" tabIndex={0} role="region" aria-label="Comparison table">
             <table className="w-full min-w-[560px] text-left text-sm">
               <thead>
                 <tr className="border-b border-gray-300 dark:border-gray-700">
-                  <th className="py-2 pr-3 font-semibold text-gray-900 dark:text-white"></th>
+                  <th className="py-2 pr-3 font-semibold text-gray-900 dark:text-white"><span className="sr-only">Feature</span></th>
                   <th className="py-2 pr-3 font-semibold text-blue-600 dark:text-blue-400">Baseball Stats Tracker</th>
                   <th className="py-2 font-semibold text-gray-900 dark:text-white">GameChanger</th>
                 </tr>

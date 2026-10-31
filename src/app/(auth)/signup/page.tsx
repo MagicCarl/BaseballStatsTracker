@@ -174,7 +174,7 @@ export default function SignupPage() {
 
         <div className="my-6 flex items-center gap-3">
           <div className="h-px flex-1 bg-gray-300 dark:bg-gray-700" />
-          <span className="text-sm text-gray-500">{t("or")}</span>
+          <span className="text-sm text-gray-500 dark:text-gray-400">{t("or")}</span>
           <div className="h-px flex-1 bg-gray-300 dark:bg-gray-700" />
         </div>
 

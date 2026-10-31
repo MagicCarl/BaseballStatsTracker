@@ -218,7 +218,7 @@ export default async function GameChangerAlternativesPage() {
           <h2 className="mt-12 text-2xl font-bold text-gray-900 dark:text-white">
             {t("tableH2")}
           </h2>
-          <div className="mt-6 overflow-x-auto">
+          <div className="mt-6 overflow-x-auto" tabIndex={0} role="region" aria-label="Comparison table">
             <table className="w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-gray-200 dark:border-gray-700">

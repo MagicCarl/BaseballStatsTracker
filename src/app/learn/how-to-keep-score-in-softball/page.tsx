@@ -139,7 +139,7 @@ export default function HowToKeepScoreSoftballPage() {
         </Section>
 
         <Section title="Every symbol you actually need">
-          <div className="mt-2 overflow-x-auto">
+          <div className="mt-2 overflow-x-auto" tabIndex={0} role="region" aria-label="Comparison table">
             <table className="w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-gray-300 dark:border-gray-700">

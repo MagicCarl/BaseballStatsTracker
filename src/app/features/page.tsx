@@ -224,7 +224,7 @@ export default async function FeaturesPage() {
             >
               {t("getStartedFree")}
             </Link>
-            <p className="text-sm text-gray-500 dark:text-gray-500">
+            <p className="text-sm text-gray-500 dark:text-gray-400">
               {t("pricingSub")}
             </p>
           </div>
@@ -235,13 +235,13 @@ export default async function FeaturesPage() {
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
             {t("cmpH2")}
           </h2>
-          <div className="mt-6 overflow-x-auto">
+          <div className="mt-6 overflow-x-auto" tabIndex={0} role="region" aria-label="Comparison table">
             <table className="w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-gray-200 dark:border-gray-700">
                   <th className="pb-3 font-semibold text-gray-900 dark:text-white">{t("cmpColFeature")}</th>
                   <th className="pb-3 font-semibold text-blue-600 dark:text-blue-400">Baseball Stats Tracker</th>
-                  <th className="pb-3 font-semibold text-gray-500">{t("cmpColOther")}</th>
+                  <th className="pb-3 font-semibold text-gray-500 dark:text-gray-400">{t("cmpColOther")}</th>
                 </tr>
               </thead>
               <tbody className="text-gray-600 dark:text-gray-400">

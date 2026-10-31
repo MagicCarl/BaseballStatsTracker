@@ -97,7 +97,7 @@ export default function GameChangerPricingPage() {
             plan billed on a recurring basis. The important part is the model:{" "}
             <strong>it recurs</strong>.
           </p>
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="Comparison table">
             <table className="mt-2 w-full text-left text-sm">
               <caption className="pb-2 text-left text-gray-500 dark:text-gray-400">
                 GameChanger paid plans, from GameChanger&apos;s official pricing pages as of October 2026

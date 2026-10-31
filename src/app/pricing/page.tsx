@@ -109,7 +109,7 @@ export default async function PricingPage() {
           <ul className="mt-8 space-y-3 text-left text-sm text-gray-700 dark:text-gray-300">
             {feats.map((k) => (
               <li key={k} className="flex items-start gap-2">
-                <span className="mt-0.5 text-green-500">&#10003;</span>
+                <svg className="mt-0.5 h-4 w-4 shrink-0 text-green-500" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
                 <span>{t(k)}</span>
               </li>
             ))}
@@ -136,17 +136,17 @@ export default async function PricingPage() {
             <div className="rounded-xl border border-gray-200 bg-white p-6 text-center dark:border-gray-700 dark:bg-gray-800">
               <h3 className="font-semibold text-gray-900 dark:text-white">{t("season1")}</h3>
               <div className="mt-2 text-3xl font-bold text-blue-600 dark:text-blue-400">$39</div>
-              <p className="mt-1 text-sm text-gray-500">{t("season1Vs")}</p>
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{t("season1Vs")}</p>
             </div>
             <div className="rounded-xl border border-gray-200 bg-white p-6 text-center dark:border-gray-700 dark:bg-gray-800">
               <h3 className="font-semibold text-gray-900 dark:text-white">{t("season2")}</h3>
               <div className="mt-2 text-3xl font-bold text-blue-600 dark:text-blue-400">$39</div>
-              <p className="mt-1 text-sm text-gray-500">{t("season2Vs")}</p>
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{t("season2Vs")}</p>
             </div>
             <div className="rounded-xl border border-gray-200 bg-white p-6 text-center dark:border-gray-700 dark:bg-gray-800">
               <h3 className="font-semibold text-gray-900 dark:text-white">{t("season5")}</h3>
               <div className="mt-2 text-3xl font-bold text-blue-600 dark:text-blue-400">{t("season5Price")}</div>
-              <p className="mt-1 text-sm text-gray-500">{t("season5Vs")}</p>
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{t("season5Vs")}</p>
             </div>
           </div>
         </div>
@@ -199,7 +199,7 @@ export default async function PricingPage() {
           >
             {t("bottomCta")}
           </Link>
-          <p className="mt-2 text-sm text-gray-500 dark:text-gray-500">
+          <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
             {t("bottomSub")}
           </p>
           <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">
