@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="390" height="668" viewBox="0 0 390 668">
+  <defs><style>text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }</style></defs>
+  <rect width="390" height="668" fill="#111827" rx="24"/>
+  <rect x="16" y="16" width="358" height="96" rx="12" fill="#1f2937" stroke="#374151"/>
+  <text x="70" y="42" fill="#9ca3af" font-size="13" text-anchor="middle">Home</text>
+  <text x="70" y="84" fill="white" font-size="36" font-weight="bold" text-anchor="middle">7</text>
+  <text x="320" y="42" fill="#9ca3af" font-size="13" text-anchor="middle">Away</text>
+  <text x="320" y="84" fill="white" font-size="36" font-weight="bold" text-anchor="middle">4</text>
+  <text x="195" y="42" fill="#9ca3af" font-size="13" text-anchor="middle">Top 4</text>
+  <text x="195" y="60" fill="#9ca3af" font-size="12" text-anchor="middle">vs Eastside Eagles</text>
+  <circle cx="171" cy="82" r="6" fill="#eab308"/>
+  <circle cx="189" cy="82" r="6" fill="#eab308"/>
+  <circle cx="207" cy="82" r="6" fill="none" stroke="#9ca3af" stroke-width="1.5"/>
+  <text x="220" y="86" fill="#9ca3af" font-size="11">outs</text>
+  <rect x="16" y="124" width="358" height="528" rx="12" fill="#1f2937" stroke="#374151"/>
+  <text x="32" y="152" fill="#6b7280" font-size="11" letter-spacing="1">NOW BATTING</text>
+  <text x="32" y="180" fill="white" font-size="20" font-weight="bold">#24 Marcus Rivera</text>
+  <text x="358" y="180" fill="#9ca3af" font-size="13" text-anchor="end">SS | Spot #3</text>
+  <text x="32" y="215" fill="#6b7280" font-size="12">Pitcher:</text>
+  <rect x="84" y="200" width="138" height="22" rx="5" fill="#374151"/>
+  <text x="94" y="215" fill="#d1d5db" font-size="12">Jake Thompson (R)</text>
+  <text x="32" y="248" fill="#6b7280" font-size="11" letter-spacing="1">HITS</text>
+  <rect x="32" y="258" width="75" height="56" rx="9" fill="#052e16" stroke="#22c55e" stroke-width="1.5"/>
+  <text x="69.5" y="284" fill="#4ade80" font-size="16" font-weight="600" text-anchor="middle">1B</text>
+  <text x="69.5" y="302" fill="#6b7280" font-size="10" text-anchor="middle">Single</text>
+  <rect x="115" y="258" width="75" height="56" rx="9" fill="#1f2937" stroke="#374151" stroke-width="1"/>
+  <text x="152.5" y="284" fill="white" font-size="16" font-weight="600" text-anchor="middle">2B</text>
+  <text x="152.5" y="302" fill="#6b7280" font-size="10" text-anchor="middle">Double</text>
+  <rect x="198" y="258" width="75" height="56" rx="9" fill="#1f2937" stroke="#374151" stroke-width="1"/>
+  <text x="235.5" y="284" fill="white" font-size="16" font-weight="600" text-anchor="middle">3B</text>
+  <text x="235.5" y="302" fill="#6b7280" font-size="10" text-anchor="middle">Triple</text>
+  <rect x="281" y="258" width="75" height="56" rx="9" fill="#1f2937" stroke="#374151" stroke-width="1"/>
+  <text x="318.5" y="284" fill="white" font-size="16" font-weight="600" text-anchor="middle">HR</text>
+  <text x="318.5" y="302" fill="#6b7280" font-size="10" text-anchor="middle">Home Run</text>
+  <text x="32" y="342" fill="#6b7280" font-size="11" letter-spacing="1">WALKS</text>
+  <rect x="32" y="352" width="75" height="56" rx="9" fill="#1f2937" stroke="#374151" stroke-width="1"/>
+  <text x="69.5" y="378" fill="white" font-size="16" font-weight="600" text-anchor="middle">BB</text>
+  <text x="69.5" y="396" fill="#6b7280" font-size="10" text-anchor="middle">Walk</text>
+  <rect x="115" y="352" width="75" height="56" rx="9" fill="#1f2937" stroke="#374151" stroke-width="1"/>
+  <text x="152.5" y="378" fill="white" font-size="16" font-weight="600" text-anchor="middle">HBP</text>
+  <text x="152.5" y="396" fill="#6b7280" font-size="10" text-anchor="middle">Hit By Pitch</text>
+  <rect x="198" y="352" width="75" height="56" rx="9" fill="#1f2937" stroke="#374151" stroke-width="1"/>
+  <text x="235.5" y="378" fill="white" font-size="16" font-weight="600" text-anchor="middle">IBB</text>
+  <text x="235.5" y="396" fill="#6b7280" font-size="10" text-anchor="middle">Intent. Walk</text>
+  <text x="32" y="436" fill="#6b7280" font-size="11" letter-spacing="1">OUTS</text>
+  <rect x="32" y="446" width="58" height="56" rx="9" fill="#1f2937" stroke="#374151" stroke-width="1"/>
+  <text x="61" y="472" fill="white" font-size="14" font-weight="600" text-anchor="middle">GO</text>
+  <text x="61" y="490" fill="#6b7280" font-size="9" text-anchor="middle">Groundout</text>
+  <rect x="99" y="446" width="58" height="56" rx="9" fill="#1f2937" stroke="#374151" stroke-width="1"/>
+  <text x="128" y="472" fill="white" font-size="14" font-weight="600" text-anchor="middle">FO</text>
+  <text x="128" y="490" fill="#6b7280" font-size="9" text-anchor="middle">Flyout</text>
+  <rect x="166" y="446" width="58" height="56" rx="9" fill="#1f2937" stroke="#374151" stroke-width="1"/>
+  <text x="195" y="472" fill="white" font-size="14" font-weight="600" text-anchor="middle">K</text>
+  <text x="195" y="490" fill="#6b7280" font-size="9" text-anchor="middle">Strikeout</text>
+  <rect x="233" y="446" width="58" height="56" rx="9" fill="#1f2937" stroke="#374151" stroke-width="1"/>
+  <text x="262" y="472" fill="white" font-size="14" font-weight="600" text-anchor="middle">KL</text>
+  <text x="262" y="490" fill="#6b7280" font-size="9" text-anchor="middle">K Looking</text>
+  <rect x="300" y="446" width="58" height="56" rx="9" fill="#1f2937" stroke="#374151" stroke-width="1"/>
+  <text x="329" y="472" fill="white" font-size="14" font-weight="600" text-anchor="middle">FC</text>
+  <text x="329" y="490" fill="#6b7280" font-size="9" text-anchor="middle">Fielder's Ch</text>
+  <line x1="32" y1="524" x2="358" y2="524" stroke="#374151"/>
+  <text x="32" y="560" fill="#6b7280" font-size="12">RBI</text>
+  <rect x="58" y="541" width="26" height="26" rx="5" fill="#374151"/>
+  <text x="71" y="559" fill="white" font-size="14" text-anchor="middle">-</text>
+  <rect x="108" y="541" width="26" height="26" rx="5" fill="#374151"/>
+  <text x="121" y="559" fill="white" font-size="14" text-anchor="middle">+</text>
+  <text x="96" y="560" fill="white" font-size="15" font-weight="600" text-anchor="middle">0</text>
+  <text x="150" y="560" fill="#6b7280" font-size="12">Scored</text>
+  <rect x="197" y="541" width="40" height="26" rx="6" fill="#1f2937" stroke="#374151"/>
+  <text x="217" y="559" fill="#9ca3af" font-size="12" text-anchor="middle">No</text>
+  <text x="246" y="560" fill="#6b7280" font-size="12">SB</text>
+  <rect x="268" y="541" width="26" height="26" rx="5" fill="#374151"/>
+  <text x="281" y="559" fill="white" font-size="14" text-anchor="middle">-</text>
+  <rect x="318" y="541" width="26" height="26" rx="5" fill="#374151"/>
+  <text x="331" y="559" fill="white" font-size="14" text-anchor="middle">+</text>
+  <text x="306" y="560" fill="white" font-size="15" font-weight="600" text-anchor="middle">0</text>
+  <rect x="32" y="586" width="108" height="46" rx="9" fill="#374151"/>
+  <text x="86" y="614" fill="white" font-size="14" text-anchor="middle">Undo Last</text>
+  <rect x="150" y="586" width="208" height="46" rx="9" fill="#2563eb"/>
+  <text x="254" y="614" fill="white" font-size="15" font-weight="600" text-anchor="middle">Record At-Bat</text>
+</svg>

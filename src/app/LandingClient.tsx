@@ -210,10 +210,15 @@ export default function LandingClient({
             covering the photo's subject. */}
         <figure className="relative mx-auto -mt-8 mb-16 max-w-3xl px-4 sm:px-6 lg:-mt-28 lg:mb-20">
           <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl shadow-black/25 dark:border-gray-700 dark:bg-gray-900">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/screenshots/live-scoring-light.svg" alt={t("heroShotAlt")} width={800} height={600} decoding="async" className="block h-auto w-full dark:hidden" />
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/screenshots/live-scoring.svg" alt={t("heroShotAlt")} width={800} height={600} decoding="async" className="hidden h-auto w-full dark:block" />
+            {/* Phones get a portrait layout so the buttons stay readable. */}
+            <picture className="dark:hidden">
+              <source media="(max-width: 639px)" srcSet="/screenshots/live-scoring-phone-light.svg" width={390} height={668} />
+              <img src="/screenshots/live-scoring-light.svg" alt={t("heroShotAlt")} width={800} height={600} loading="lazy" decoding="async" className="block h-auto w-full" />
+            </picture>
+            <picture className="hidden dark:block">
+              <source media="(max-width: 639px)" srcSet="/screenshots/live-scoring-phone.svg" width={390} height={668} />
+              <img src="/screenshots/live-scoring.svg" alt={t("heroShotAlt")} width={800} height={600} loading="lazy" decoding="async" className="block h-auto w-full" />
+            </picture>
           </div>
           <figcaption className="mt-3 text-center text-sm text-gray-600 dark:text-gray-400">
             {t("heroShotCaption")}
