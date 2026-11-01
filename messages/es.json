@@ -951,7 +951,9 @@
     },
     "footer": {
       "guides": "Guías",
-      "privacy": "Política de Privacidad"
+      "privacy": "Política de Privacidad",
+      "contact": "Contáctanos",
+      "follow": "Síguenos"
     }
   },
   "admin": {

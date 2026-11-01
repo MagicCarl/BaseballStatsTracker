@@ -951,7 +951,9 @@
     },
     "footer": {
       "guides": "指南",
-      "privacy": "隱私權政策"
+      "privacy": "隱私權政策",
+      "contact": "聯絡我們",
+      "follow": "追蹤我們"
     }
   },
   "admin": {

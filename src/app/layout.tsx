@@ -36,7 +36,7 @@ export const metadata: Metadata = {
   },
   title: {
     default:
-      "Baseball Stats Tracker - Youth Baseball & Softball Stats Tracker App",
+      "Baseball Stats Tracker – Youth Baseball & Softball App",
     template: "%s | Baseball Stats Tracker",
   },
   description:

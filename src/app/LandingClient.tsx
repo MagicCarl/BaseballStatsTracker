@@ -157,7 +157,8 @@ export default function LandingClient({
               src="/hero-slide-home.jpg"
               alt={t("heroImageAlt")}
               fill
-              priority
+              preload
+              fetchPriority="high"
               sizes="(min-width: 1024px) 70vw, 100vw"
               className="object-cover object-center"
             />

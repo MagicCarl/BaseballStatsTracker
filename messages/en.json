@@ -951,7 +951,9 @@
     },
     "footer": {
       "guides": "Guides",
-      "privacy": "Privacy Policy"
+      "privacy": "Privacy Policy",
+      "contact": "Contact us",
+      "follow": "Follow us"
     }
   },
   "admin": {

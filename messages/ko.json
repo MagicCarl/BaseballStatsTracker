@@ -951,7 +951,9 @@
     },
     "footer": {
       "guides": "가이드",
-      "privacy": "개인정보 처리방침"
+      "privacy": "개인정보 처리방침",
+      "contact": "문의하기",
+      "follow": "팔로우하기"
     }
   },
   "admin": {

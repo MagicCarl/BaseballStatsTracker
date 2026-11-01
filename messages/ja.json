@@ -951,7 +951,9 @@
     },
     "footer": {
       "guides": "ガイド",
-      "privacy": "プライバシーポリシー"
+      "privacy": "プライバシーポリシー",
+      "contact": "お問い合わせ",
+      "follow": "フォローする"
     }
   },
   "admin": {
