@@ -5,11 +5,16 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/providers/AuthProvider";
 import { useApi } from "@/hooks/useApi";
 
+const SIGNUP_TO_BUY = "/signup?intent=buy";
+
 /**
  * Starts a Stripe Checkout session for the $39 one-time purchase.
  * - Logged-in users → redirected straight to Stripe's hosted checkout.
  * - Logged-out users → sent to /signup first (a payment must be tied to an
  *   account so the webhook can grant access to the right user).
+ *
+ * Rendered as a real link to the signup-to-buy path so crawlers and AI
+ * readers see a purchase action, not a script-only button.
  */
 export default function BuyButton({
   children,
@@ -24,9 +29,17 @@ export default function BuyButton({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const handleClick = async () => {
+  const handleClick = async (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    if (loading) return;
+    window.gtag?.("event", "begin_checkout", {
+      currency: "USD",
+      value: 39,
+      signed_in: Boolean(user),
+      page_path: window.location.pathname,
+    });
     if (!user) {
-      router.push("/signup?intent=buy");
+      router.push(SIGNUP_TO_BUY);
       return;
     }
     setLoading(true);
@@ -52,9 +65,14 @@ export default function BuyButton({
 
   return (
     <>
-      <button onClick={handleClick} disabled={loading} className={className}>
+      <a
+        href={SIGNUP_TO_BUY}
+        onClick={handleClick}
+        aria-disabled={loading || undefined}
+        className={`text-center ${className ?? ""}`}
+      >
         {loading ? "…" : children}
-      </button>
+      </a>
       {error && (
         <span className="mt-2 block text-sm text-red-600 dark:text-red-400">
           {error}

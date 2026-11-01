@@ -101,13 +101,7 @@ export default function LandingClient({
             <Link href="/faq" className="hover:text-gray-900 dark:hover:text-white">{tc("navFaq")}</Link>
           </nav>
           <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
-            <div className="hidden sm:block">
-              <LanguageSwitcher
-                placeholder={t("selectLanguage")}
-                className="rounded-lg border border-gray-300 bg-white px-2 py-1.5 text-sm text-gray-700 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300"
-              />
-            </div>
-            <div className="relative flex h-10 w-10 items-center justify-center rounded-lg text-gray-700 sm:hidden dark:text-gray-300">
+            <div className="relative flex h-10 w-10 items-center justify-center rounded-lg text-gray-700 hover:bg-black/5 hover:text-gray-900 focus-within:ring-2 focus-within:ring-blue-500 dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-white">
               <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden="true">
                 <circle cx="12" cy="12" r="9" />
                 <path strokeLinecap="round" d="M3 12h18M12 3c2.5 2.5 3.5 5.5 3.5 9s-1 6.5-3.5 9c-2.5-2.5-3.5-5.5-3.5-9s1-6.5 3.5-9z" />
@@ -210,6 +204,21 @@ export default function LandingClient({
             </div>
           </div>
         </section>
+
+        {/* The app itself, right under the buttons. On desktop it tucks into the
+            hero's faded bottom edge so it starts on the first screen without
+            covering the photo's subject. */}
+        <figure className="relative mx-auto -mt-8 mb-16 max-w-3xl px-4 sm:px-6 lg:-mt-28 lg:mb-20">
+          <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl shadow-black/25 dark:border-gray-700 dark:bg-gray-900">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/screenshots/live-scoring-light.svg" alt={t("heroShotAlt")} width={800} height={600} decoding="async" className="block h-auto w-full dark:hidden" />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/screenshots/live-scoring.svg" alt={t("heroShotAlt")} width={800} height={600} decoding="async" className="hidden h-auto w-full dark:block" />
+          </div>
+          <figcaption className="mt-3 text-center text-sm text-gray-600 dark:text-gray-400">
+            {t("heroShotCaption")}
+          </figcaption>
+        </figure>
 
         <section className="mx-auto max-w-2xl px-6 text-center">
           <p className="text-2xl font-semibold leading-snug tracking-tight text-gray-900 sm:text-3xl dark:text-gray-100">
