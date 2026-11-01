@@ -24,7 +24,7 @@ export default async function PrivacyPolicyPage() {
         >
           &larr; {t("backHome")}
         </Link>
-        <h1 className="mt-6 text-4xl font-bold tracking-tight text-gray-900 dark:text-white">
+        <h1 className="mt-6 text-4xl leading-snug font-bold tracking-tight text-gray-900 dark:text-white">
           {t("title")}
         </h1>
         <p className="mt-4 text-lg text-gray-600 dark:text-gray-400">

@@ -111,7 +111,7 @@ export default function SignupPage() {
     return (
       <div className="flex min-h-screen items-center justify-center px-4">
         <div className="w-full max-w-sm text-center">
-          <h1 className="mb-4 text-2xl font-bold">{t("verifyTitle")}</h1>
+          <h1 className="mb-4 text-2xl leading-snug font-bold">{t("verifyTitle")}</h1>
           <div className="mb-6 rounded-lg bg-blue-50 p-4 text-sm text-blue-700 dark:bg-blue-900/20 dark:text-blue-300">
             {t("verifySent", { email: verifyEmail })}
           </div>
@@ -132,7 +132,7 @@ export default function SignupPage() {
         <div className="mb-4 flex justify-end">
           <LanguageSwitcher />
         </div>
-        <h1 className="mb-8 text-center text-2xl font-bold">
+        <h1 className="mb-8 text-center text-2xl leading-snug font-bold">
           {t("title")}
         </h1>
 

@@ -212,7 +212,7 @@ export default function LandingClient({
         </section>
 
         <section className="mx-auto max-w-2xl px-6 text-center">
-          <p className="text-2xl font-semibold tracking-tight text-gray-900 sm:text-3xl dark:text-gray-100">
+          <p className="text-2xl font-semibold leading-snug tracking-tight text-gray-900 sm:text-3xl dark:text-gray-100">
             {t("hook1")}
             <br />
             {t("hook2")}
@@ -263,7 +263,7 @@ export default function LandingClient({
             className="mb-6 h-auto w-full rounded-2xl shadow-2xl"
           />
           <div className="rounded-2xl border border-gray-200 bg-white p-8 text-center shadow-sm dark:border-gray-700 dark:bg-gray-800">
-            <h3 className="text-2xl font-bold">{t("getAllFeatures")}</h3>
+            <h3 className="text-2xl font-bold leading-snug">{t("getAllFeatures")}</h3>
             <div className="mt-4">
               <span className="text-4xl font-bold">$39</span>
               <span className="ml-1 text-gray-500 dark:text-gray-400">{t("oneTime")}</span>

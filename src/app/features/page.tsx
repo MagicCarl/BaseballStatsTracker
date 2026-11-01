@@ -87,7 +87,7 @@ export default async function FeaturesPage() {
       </header>
 
       <main className="mx-auto max-w-4xl px-6 py-16">
-        <h1 className="text-4xl font-bold text-gray-900 dark:text-white sm:text-5xl">
+        <h1 className="text-4xl leading-snug font-bold text-gray-900 dark:text-white sm:text-5xl">
           {t("h1")}
         </h1>
         <p className="mt-4 text-lg text-gray-600 dark:text-gray-400">
@@ -96,7 +96,7 @@ export default async function FeaturesPage() {
 
         {/* Live Game Scoring */}
         <section className="mt-16">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+          <h2 className="text-2xl leading-snug font-bold text-gray-900 dark:text-white">
             {t("liveH2")}
           </h2>
           <p className="mt-3 text-gray-600 dark:text-gray-400">
@@ -113,7 +113,7 @@ export default async function FeaturesPage() {
 
         {/* Batting Stats */}
         <section className="mt-16">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+          <h2 className="text-2xl leading-snug font-bold text-gray-900 dark:text-white">
             {t("battingH2")}
           </h2>
           <p className="mt-3 text-gray-600 dark:text-gray-400">
@@ -137,7 +137,7 @@ export default async function FeaturesPage() {
 
         {/* Pitching Stats */}
         <section className="mt-16">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+          <h2 className="text-2xl leading-snug font-bold text-gray-900 dark:text-white">
             {t("pitchingH2")}
           </h2>
           <p className="mt-3 text-gray-600 dark:text-gray-400">
@@ -150,7 +150,7 @@ export default async function FeaturesPage() {
 
         {/* Spray Charts */}
         <section className="mt-16">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+          <h2 className="text-2xl leading-snug font-bold text-gray-900 dark:text-white">
             {t("sprayH2")}
           </h2>
           <p className="mt-3 text-gray-600 dark:text-gray-400">
@@ -165,7 +165,7 @@ export default async function FeaturesPage() {
 
         {/* Box Scores */}
         <section className="mt-16">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+          <h2 className="text-2xl leading-snug font-bold text-gray-900 dark:text-white">
             {t("boxH2")}
           </h2>
           <p className="mt-3 text-gray-600 dark:text-gray-400">
@@ -175,7 +175,7 @@ export default async function FeaturesPage() {
 
         {/* Advanced Stats Search */}
         <section className="mt-16">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+          <h2 className="text-2xl leading-snug font-bold text-gray-900 dark:text-white">
             {t("searchH2")}
           </h2>
           <p className="mt-3 text-gray-600 dark:text-gray-400">
@@ -194,7 +194,7 @@ export default async function FeaturesPage() {
 
         {/* Opponent Tracking */}
         <section className="mt-16">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+          <h2 className="text-2xl leading-snug font-bold text-gray-900 dark:text-white">
             {t("oppH2")}
           </h2>
           <p className="mt-3 text-gray-600 dark:text-gray-400">
@@ -204,7 +204,7 @@ export default async function FeaturesPage() {
 
         {/* Pricing */}
         <section className="mt-16 rounded-xl border border-gray-200 bg-white p-8 text-center dark:border-gray-700 dark:bg-gray-800">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+          <h2 className="text-2xl leading-snug font-bold text-gray-900 dark:text-white">
             {t("pricingH2")}
           </h2>
           <p className="mt-3 text-gray-600 dark:text-gray-400">
@@ -232,7 +232,7 @@ export default async function FeaturesPage() {
 
         {/* Comparison */}
         <section className="mt-16">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+          <h2 className="text-2xl leading-snug font-bold text-gray-900 dark:text-white">
             {t("cmpH2")}
           </h2>
           <div className="mt-6 overflow-x-auto" tabIndex={0} role="region" aria-label="Comparison table">
@@ -252,27 +252,27 @@ export default async function FeaturesPage() {
                 </tr>
                 <tr className="border-b border-gray-100 dark:border-gray-800">
                   <td className="py-3">{t("cmpRowLive")}</td>
-                  <td className="py-3 font-medium text-green-600">{t("cmpIncluded")}</td>
+                  <td className="py-3 font-medium text-green-700 dark:text-green-400">{t("cmpIncluded")}</td>
                   <td className="py-3">{t("cmpIncluded")}</td>
                 </tr>
                 <tr className="border-b border-gray-100 dark:border-gray-800">
                   <td className="py-3">{t("cmpRowSpray")}</td>
-                  <td className="py-3 font-medium text-green-600">{t("cmpIncluded")}</td>
+                  <td className="py-3 font-medium text-green-700 dark:text-green-400">{t("cmpIncluded")}</td>
                   <td className="py-3">{t("cmpPremium")}</td>
                 </tr>
                 <tr className="border-b border-gray-100 dark:border-gray-800">
                   <td className="py-3">{t("cmpRowSplits")}</td>
-                  <td className="py-3 font-medium text-green-600">{t("cmpIncluded")}</td>
+                  <td className="py-3 font-medium text-green-700 dark:text-green-400">{t("cmpIncluded")}</td>
                   <td className="py-3">{t("cmpPremium")}</td>
                 </tr>
                 <tr className="border-b border-gray-100 dark:border-gray-800">
                   <td className="py-3">{t("cmpRowSync")}</td>
-                  <td className="py-3 font-medium text-green-600">{t("cmpIncluded")}</td>
+                  <td className="py-3 font-medium text-green-700 dark:text-green-400">{t("cmpIncluded")}</td>
                   <td className="py-3">{t("cmpPremium")}</td>
                 </tr>
                 <tr className="border-b border-gray-100 dark:border-gray-800">
                   <td className="py-3">{t("cmpRowPitch")}</td>
-                  <td className="py-3 font-medium text-green-600">{t("cmpIncluded")}</td>
+                  <td className="py-3 font-medium text-green-700 dark:text-green-400">{t("cmpIncluded")}</td>
                   <td className="py-3">{t("cmpPremium")}</td>
                 </tr>
                 <tr>

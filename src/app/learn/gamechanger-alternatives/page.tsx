@@ -183,14 +183,14 @@ export default async function GameChangerAlternativesPage() {
 
       <main className="mx-auto max-w-3xl px-6 py-12">
         <article className="prose-baseball">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white sm:text-5xl">
+          <h1 className="text-4xl leading-snug font-bold text-gray-900 dark:text-white sm:text-5xl">
             {t("title")}
           </h1>
           <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">
             {t("byline")}
           </p>
 
-          <h2 className="mt-12 text-2xl font-bold text-gray-900 dark:text-white">
+          <h2 className="mt-12 text-2xl leading-snug font-bold text-gray-900 dark:text-white">
             {t("whyH2")}
           </h2>
           <p className="mt-3 text-gray-700 dark:text-gray-300">{t("whyP1")}</p>
@@ -202,7 +202,7 @@ export default async function GameChangerAlternativesPage() {
           </ol>
           <p className="mt-3 text-gray-700 dark:text-gray-300">{t("whyP3")}</p>
 
-          <h2 className="mt-12 text-2xl font-bold text-gray-900 dark:text-white">
+          <h2 className="mt-12 text-2xl leading-snug font-bold text-gray-900 dark:text-white">
             {t("wantH2")}
           </h2>
           <p className="mt-3 text-gray-700 dark:text-gray-300">{t("wantP")}</p>
@@ -215,7 +215,7 @@ export default async function GameChangerAlternativesPage() {
             <li>{t.rich("wantLi6", rich)}</li>
           </ul>
 
-          <h2 className="mt-12 text-2xl font-bold text-gray-900 dark:text-white">
+          <h2 className="mt-12 text-2xl leading-snug font-bold text-gray-900 dark:text-white">
             {t("tableH2")}
           </h2>
           <div className="mt-6 overflow-x-auto" tabIndex={0} role="region" aria-label="Comparison table">
@@ -389,7 +389,7 @@ export default async function GameChangerAlternativesPage() {
             <strong>{t("lblVerdict")}</strong> {t("s5Verdict")}
           </p>
 
-          <h2 className="mt-12 text-2xl font-bold text-gray-900 dark:text-white">{t("verdictH2")}</h2>
+          <h2 className="mt-12 text-2xl leading-snug font-bold text-gray-900 dark:text-white">{t("verdictH2")}</h2>
           <p className="mt-3 text-gray-700 dark:text-gray-300">{t("verdictP")}</p>
           <ul className="mt-3 list-disc space-y-2 pl-6 text-gray-700 dark:text-gray-300">
             <li>{t.rich("verdictLi1", rich)}</li>
@@ -398,7 +398,7 @@ export default async function GameChangerAlternativesPage() {
           </ul>
           <p className="mt-3 text-gray-700 dark:text-gray-300">{t("verdictAfter")}</p>
 
-          <h2 className="mt-12 text-2xl font-bold text-gray-900 dark:text-white">{t("faqH2")}</h2>
+          <h2 className="mt-12 text-2xl leading-snug font-bold text-gray-900 dark:text-white">{t("faqH2")}</h2>
 
           <h3 className="mt-6 text-lg font-bold text-gray-900 dark:text-white">{t("faqQ1")}</h3>
           <p className="mt-2 text-gray-700 dark:text-gray-300">{t("faqA1")}</p>
@@ -416,7 +416,7 @@ export default async function GameChangerAlternativesPage() {
           <p className="mt-2 text-gray-700 dark:text-gray-300">{t("faqA5")}</p>
 
           <section className="mt-16 rounded-xl border border-gray-200 bg-white p-8 text-center dark:border-gray-700 dark:bg-gray-800">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{t("ctaH2")}</h2>
+            <h2 className="text-2xl leading-snug font-bold text-gray-900 dark:text-white">{t("ctaH2")}</h2>
             <p className="mt-3 text-gray-600 dark:text-gray-400">
               {t("ctaP")}
             </p>

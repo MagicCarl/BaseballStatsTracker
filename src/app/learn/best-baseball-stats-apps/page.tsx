@@ -213,7 +213,7 @@ export default function BestBaseballStatsAppsPage() {
 
       <main className="mx-auto max-w-3xl px-6 py-12">
         <article className="prose-baseball">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white sm:text-5xl">
+          <h1 className="text-4xl leading-snug font-bold text-gray-900 dark:text-white sm:text-5xl">
             Best Baseball Stats Apps in 2026
           </h1>
           <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">
@@ -231,7 +231,7 @@ export default function BestBaseballStatsAppsPage() {
             the trade-offs.
           </p>
 
-          <h2 className="mt-12 text-2xl font-bold text-gray-900 dark:text-white">
+          <h2 className="mt-12 text-2xl leading-snug font-bold text-gray-900 dark:text-white">
             What to look for in a baseball stats app
           </h2>
           <ul className="mt-3 list-disc space-y-2 pl-6 text-gray-700 dark:text-gray-300">
@@ -257,7 +257,7 @@ export default function BestBaseballStatsAppsPage() {
             </li>
           </ul>
 
-          <h2 className="mt-12 text-2xl font-bold text-gray-900 dark:text-white">
+          <h2 className="mt-12 text-2xl leading-snug font-bold text-gray-900 dark:text-white">
             Quick comparison
           </h2>
           <div className="mt-6 overflow-x-auto" tabIndex={0} role="region" aria-label="Comparison table">
@@ -299,7 +299,7 @@ export default function BestBaseballStatsAppsPage() {
             </em>
           </p>
 
-          <h2 className="mt-12 text-2xl font-bold text-gray-900 dark:text-white">
+          <h2 className="mt-12 text-2xl leading-snug font-bold text-gray-900 dark:text-white">
             1. Baseball Stats Tracker — best overall (no subscription)
           </h2>
           <p className="mt-3 text-gray-700 dark:text-gray-300">
@@ -340,7 +340,7 @@ export default function BestBaseballStatsAppsPage() {
             .
           </p>
 
-          <h2 className="mt-12 text-2xl font-bold text-gray-900 dark:text-white">
+          <h2 className="mt-12 text-2xl leading-snug font-bold text-gray-900 dark:text-white">
             2. GameChanger — best for video clips & league adoption
           </h2>
           <p className="mt-3 text-gray-700 dark:text-gray-300">
@@ -370,7 +370,7 @@ export default function BestBaseballStatsAppsPage() {
             .
           </p>
 
-          <h2 className="mt-12 text-2xl font-bold text-gray-900 dark:text-white">
+          <h2 className="mt-12 text-2xl leading-snug font-bold text-gray-900 dark:text-white">
             3. iScore Baseball — best for deep scorekeeping
           </h2>
           <p className="mt-3 text-gray-700 dark:text-gray-300">
@@ -393,7 +393,7 @@ export default function BestBaseballStatsAppsPage() {
             wants maximum depth and does not mind the learning curve.
           </p>
 
-          <h2 className="mt-12 text-2xl font-bold text-gray-900 dark:text-white">
+          <h2 className="mt-12 text-2xl leading-snug font-bold text-gray-900 dark:text-white">
             4. TeamSnap — best for team management
           </h2>
           <p className="mt-3 text-gray-700 dark:text-gray-300">
@@ -416,7 +416,7 @@ export default function BestBaseballStatsAppsPage() {
             dedicated stats app if numbers matter to you.
           </p>
 
-          <h2 className="mt-12 text-2xl font-bold text-gray-900 dark:text-white">
+          <h2 className="mt-12 text-2xl leading-snug font-bold text-gray-900 dark:text-white">
             5. Pen &amp; paper or a spreadsheet — best free fallback
           </h2>
           <p className="mt-3 text-gray-700 dark:text-gray-300">
@@ -438,7 +438,7 @@ export default function BestBaseballStatsAppsPage() {
             app once they want shareable, automatic stats.
           </p>
 
-          <h2 className="mt-12 text-2xl font-bold text-gray-900 dark:text-white">
+          <h2 className="mt-12 text-2xl leading-snug font-bold text-gray-900 dark:text-white">
             Which baseball stats app is right for you?
           </h2>
           <ul className="mt-3 list-disc space-y-2 pl-6 text-gray-700 dark:text-gray-300">
@@ -463,7 +463,7 @@ export default function BestBaseballStatsAppsPage() {
             </li>
           </ul>
 
-          <h2 className="mt-12 text-2xl font-bold text-gray-900 dark:text-white">
+          <h2 className="mt-12 text-2xl leading-snug font-bold text-gray-900 dark:text-white">
             Frequently asked questions
           </h2>
 
@@ -513,7 +513,7 @@ export default function BestBaseballStatsAppsPage() {
           </p>
 
           <section className="mt-16 rounded-xl border border-gray-200 bg-white p-8 text-center dark:border-gray-700 dark:bg-gray-800">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+            <h2 className="text-2xl leading-snug font-bold text-gray-900 dark:text-white">
               Try the no-subscription option
             </h2>
             <p className="mt-3 text-gray-600 dark:text-gray-400">

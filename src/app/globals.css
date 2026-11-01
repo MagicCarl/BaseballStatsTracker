@@ -39,3 +39,10 @@ body {
 .dark #soro-blog .soro-blog-card-excerpt {
   color: #d1d5db;
 }
+/* Its #999 dates are 2.7:1 on the light page. */
+#soro-blog .soro-blog-card-date {
+  color: #57534e;
+}
+.dark #soro-blog .soro-blog-card-date {
+  color: #9ca3af;
+}

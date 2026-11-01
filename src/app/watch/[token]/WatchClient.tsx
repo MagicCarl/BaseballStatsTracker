@@ -95,7 +95,7 @@ export default function WatchClient({ token }: { token: string }) {
   if (notFound || !game) {
     return (
       <div className="mx-auto max-w-md px-6 py-20 text-center">
-        <p className="text-2xl font-bold text-gray-900 dark:text-white">Game not found</p>
+        <p className="text-2xl leading-snug font-bold text-gray-900 dark:text-white">Game not found</p>
         <p className="mt-3 text-gray-600 dark:text-gray-400">
           This share link is invalid or has been turned off by the scorekeeper.
         </p>
@@ -192,7 +192,7 @@ export default function WatchClient({ token }: { token: string }) {
 
       <main className="mx-auto max-w-2xl space-y-4 px-5 py-8">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+          <h1 className="text-2xl leading-snug font-bold text-gray-900 dark:text-white">
             {ourTeamName} vs {oppTeamName}
           </h1>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">

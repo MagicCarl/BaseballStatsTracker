@@ -40,7 +40,7 @@ export default async function BlogIndexPage() {
           <Link href="/" className="hover:underline">Home</Link> <span aria-hidden>/</span> Blog
         </nav>
 
-        <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 sm:text-5xl dark:text-white">
+        <h1 className="text-4xl leading-snug font-extrabold tracking-tight text-gray-900 sm:text-5xl dark:text-white">
           Blog
         </h1>
         <p className="mt-6 text-lg text-gray-600 dark:text-gray-300">
@@ -57,7 +57,7 @@ export default async function BlogIndexPage() {
             {articles.map((article) => (
               <li key={article.id}>
                 <Link href={`/blog/${article.slug}`} className="group block">
-                  <h2 className="text-2xl font-bold text-gray-900 group-hover:underline dark:text-white">
+                  <h2 className="text-2xl leading-snug font-bold text-gray-900 group-hover:underline dark:text-white">
                     {article.title}
                   </h2>
                   <time
@@ -74,7 +74,7 @@ export default async function BlogIndexPage() {
         )}
 
         <div className="mt-12 rounded-2xl bg-gray-900 p-8 text-center dark:bg-gray-800">
-          <p className="text-2xl font-bold text-white">One payment. Every season.</p>
+          <p className="text-2xl leading-snug font-bold text-white">One payment. Every season.</p>
           <p className="mt-2 text-gray-300">
             Live scoring, automatic stats, spray charts. $39 once, no subscription.
           </p>

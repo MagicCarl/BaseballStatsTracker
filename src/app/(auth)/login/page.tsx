@@ -160,7 +160,7 @@ export default function LoginPage() {
         <div className="mb-4 flex justify-end">
           <LanguageSwitcher />
         </div>
-        <h1 className="mb-8 text-center text-2xl font-bold">
+        <h1 className="mb-8 text-center text-2xl leading-snug font-bold">
           {t("title")}
         </h1>
 

@@ -176,7 +176,7 @@ export default function ComparePage() {
           <Link href="/" className="hover:underline">Home</Link> <span aria-hidden>/</span> Compare
         </nav>
 
-        <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-5xl">
+        <h1 className="text-4xl leading-snug font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-5xl">
           Baseball stats app comparison
         </h1>
         <p className="mt-4 text-lg text-gray-600 dark:text-gray-300">
@@ -221,7 +221,7 @@ export default function ComparePage() {
         </div>
 
         {/* Verdict */}
-        <h2 className="mt-12 text-2xl font-bold text-gray-900 dark:text-white">The honest verdict</h2>
+        <h2 className="mt-12 text-2xl leading-snug font-bold text-gray-900 dark:text-white">The honest verdict</h2>
         <p className="mt-3">
           If your league <em>requires</em> a specific app, use what they mandate. But if the
           choice is yours and you mostly want clean stats, spray charts, and a live box score
@@ -238,7 +238,7 @@ export default function ComparePage() {
         </p>
 
         {/* FAQ */}
-        <h2 className="mt-12 text-2xl font-bold text-gray-900 dark:text-white">Frequently asked questions</h2>
+        <h2 className="mt-12 text-2xl leading-snug font-bold text-gray-900 dark:text-white">Frequently asked questions</h2>
         <div className="mt-4 space-y-6">
           {faqs.map((f) => (
             <div key={f.q}>
@@ -250,7 +250,7 @@ export default function ComparePage() {
 
         {/* CTA */}
         <div className="mt-12 rounded-2xl bg-gray-900 p-8 text-center dark:bg-gray-800">
-          <p className="text-2xl font-bold text-white">One price. Everything included.</p>
+          <p className="text-2xl leading-snug font-bold text-white">One price. Everything included.</p>
           <p className="mt-2 text-gray-300">
             $39 once. No subscription. Score your first game in 60 seconds.
           </p>

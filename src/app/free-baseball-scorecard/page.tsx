@@ -73,7 +73,7 @@ export default function FreeScorecardPage() {
           <Link href="/" className="hover:underline">Home</Link> <span aria-hidden>/</span>{" "}
           Free Scorecard
         </nav>
-        <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-5xl">
+        <h1 className="text-4xl leading-snug font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-5xl">
           Free printable baseball scorecard
         </h1>
         <p className="mt-6 text-lg text-gray-600 dark:text-gray-300">
@@ -107,7 +107,7 @@ export default function FreeScorecardPage() {
         </div>
 
         <section className="mt-12">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">What&apos;s on it</h2>
+          <h2 className="text-2xl leading-snug font-bold text-gray-900 dark:text-white">What&apos;s on it</h2>
           <ul className="mt-3 list-inside list-disc space-y-2 leading-relaxed">
             {included.map((item) => (
               <li key={item}>{item}</li>
@@ -116,7 +116,7 @@ export default function FreeScorecardPage() {
         </section>
 
         <section className="mt-12">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">New to scorekeeping?</h2>
+          <h2 className="text-2xl leading-snug font-bold text-gray-900 dark:text-white">New to scorekeeping?</h2>
           <p className="mt-3 leading-relaxed">
             If the symbols are new to you, our guides walk through everything on this card
             step by step —{" "}
@@ -132,7 +132,7 @@ export default function FreeScorecardPage() {
         </section>
 
         <div className="mt-12 rounded-2xl bg-gray-900 p-8 text-center dark:bg-gray-800">
-          <p className="text-2xl font-bold text-white">
+          <p className="text-2xl leading-snug font-bold text-white">
             Tired of the clipboard and the pencil that breaks in the 3rd inning?
           </p>
           <p className="mt-2 text-gray-300">
@@ -150,7 +150,7 @@ export default function FreeScorecardPage() {
           </p>
         </div>
 
-        <h2 className="mt-12 text-2xl font-bold text-gray-900 dark:text-white">Frequently asked questions</h2>
+        <h2 className="mt-12 text-2xl leading-snug font-bold text-gray-900 dark:text-white">Frequently asked questions</h2>
         <div className="mt-4 space-y-6">
           {faqs.map((f) => (
             <div key={f.q}>

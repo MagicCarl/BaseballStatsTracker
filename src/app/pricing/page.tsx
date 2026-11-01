@@ -88,7 +88,7 @@ export default async function PricingPage() {
       </header>
 
       <main className="mx-auto max-w-3xl px-6 py-16">
-        <h1 className="text-center text-4xl font-bold text-gray-900 dark:text-white sm:text-5xl">
+        <h1 className="text-center text-4xl leading-snug font-bold text-gray-900 dark:text-white sm:text-5xl">
           {t("h1")}
         </h1>
         <p className="mt-4 text-center text-lg text-gray-600 dark:text-gray-400">
@@ -125,7 +125,7 @@ export default async function PricingPage() {
 
         {/* Value comparison */}
         <div className="mt-16">
-          <h2 className="text-center text-2xl font-bold text-gray-900 dark:text-white">
+          <h2 className="text-center text-2xl leading-snug font-bold text-gray-900 dark:text-white">
             {t("compareH2")}
           </h2>
           <p className="mt-3 text-center text-gray-600 dark:text-gray-400">
@@ -155,7 +155,7 @@ export default async function PricingPage() {
 
         {/* FAQ */}
         <div className="mt-16">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{t("faqH2")}</h2>
+          <h2 className="text-2xl leading-snug font-bold text-gray-900 dark:text-white">{t("faqH2")}</h2>
           <div className="mt-6 space-y-6">
             <div>
               <h3 className="font-semibold text-gray-900 dark:text-white">{t("faqQ1")}</h3>

@@ -95,7 +95,7 @@ export default function LearnIndexPage() {
           <Link href="/" className="hover:underline">Home</Link> <span aria-hidden>/</span>{" "}
           Learn
         </nav>
-        <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-5xl">
+        <h1 className="text-4xl leading-snug font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-5xl">
           Baseball guides for parents &amp; coaches
         </h1>
         <p className="mt-4 text-lg text-gray-600 dark:text-gray-300">

@@ -83,7 +83,7 @@ export default function HowToKeepScorePage() {
       <MarketingHeader />
       <main className="mx-auto max-w-3xl px-5 py-10 text-gray-800 dark:text-gray-200">
         <Breadcrumb label="How to Keep Score in Baseball" />
-        <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-5xl">
+        <h1 className="text-4xl leading-snug font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-5xl">
           How to keep score in baseball
         </h1>
         <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">By Carl Andrews · Updated July 2026</p>
@@ -183,7 +183,7 @@ export default function HowToKeepScorePage() {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="mt-10">
-      <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{title}</h2>
+      <h2 className="text-2xl leading-snug font-bold text-gray-900 dark:text-white">{title}</h2>
       <div className="mt-3 space-y-3 leading-relaxed">{children}</div>
     </section>
   );
@@ -215,7 +215,7 @@ function Breadcrumb({ label }: { label: string }) {
 function FaqBlock({ faqs }: { faqs: { q: string; a: string }[] }) {
   return (
     <>
-      <h2 className="mt-12 text-2xl font-bold text-gray-900 dark:text-white">Frequently asked questions</h2>
+      <h2 className="mt-12 text-2xl leading-snug font-bold text-gray-900 dark:text-white">Frequently asked questions</h2>
       <div className="mt-4 space-y-6">
         {faqs.map((f) => (
           <div key={f.q}>
@@ -231,7 +231,7 @@ function FaqBlock({ faqs }: { faqs: { q: string; a: string }[] }) {
 function CtaCard() {
   return (
     <div className="mt-12 rounded-2xl bg-gray-900 p-8 text-center dark:bg-gray-800">
-      <p className="text-2xl font-bold text-white">Score without the pencil math.</p>
+      <p className="text-2xl leading-snug font-bold text-white">Score without the pencil math.</p>
       <p className="mt-2 text-gray-300">Tap each at-bat; the app does the rest. $39 once, no subscription.</p>
       <Link href="/pricing" className="mt-5 inline-block rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white hover:bg-blue-700">
         Get Instant Access — $39

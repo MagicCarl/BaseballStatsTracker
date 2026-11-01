@@ -30,7 +30,7 @@ export default function Testimonials() {
 
   return (
     <section className="mx-auto max-w-4xl px-6 pb-16">
-      <h2 className="text-center text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
+      <h2 className="text-center text-3xl font-bold leading-snug tracking-tight text-gray-900 dark:text-white">
         What people are saying
       </h2>
       <div className="mt-8 grid gap-6 sm:grid-cols-2">

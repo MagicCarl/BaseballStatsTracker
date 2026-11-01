@@ -31,7 +31,7 @@ export default async function LandingPage() {
     em: (c: React.ReactNode) => <em>{c}</em>,
     b: (c: React.ReactNode) => <span className="font-semibold">{c}</span>,
     red: (c: React.ReactNode) => <span className="text-red-600 dark:text-red-400">{c}</span>,
-    green: (c: React.ReactNode) => <span className="text-green-600 dark:text-green-400">{c}</span>,
+    green: (c: React.ReactNode) => <span className="text-green-700 dark:text-green-400">{c}</span>,
     featuresLink: (c: React.ReactNode) => (
       <Link href="/features" className="font-medium text-blue-600 underline underline-offset-2 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">{c}</Link>
     ),
@@ -113,7 +113,7 @@ export default async function LandingPage() {
           ============================================================ */}
       <section className="mx-auto max-w-3xl px-6 pb-16 pt-4">
         <div className="rounded-xl border border-gray-200 bg-white p-8 sm:p-10 dark:border-gray-700 dark:bg-gray-800">
-          <h2 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
+          <h2 className="text-3xl font-bold leading-snug tracking-tight text-gray-900 dark:text-white sm:text-4xl">
             {t("introHeadline")}
           </h2>
           <div className="mt-6 space-y-4 text-lg leading-relaxed text-gray-700 dark:text-gray-300">
@@ -132,7 +132,7 @@ export default async function LandingPage() {
             />
           </div>
 
-          <h3 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
+          <h3 className="text-2xl font-bold leading-snug tracking-tight text-gray-900 dark:text-white">
             {t("introSub1")}
           </h3>
           <div className="mt-4 space-y-4 text-lg leading-relaxed text-gray-700 dark:text-gray-300">
@@ -141,7 +141,7 @@ export default async function LandingPage() {
             <p>{t("introP5")}</p>
           </div>
 
-          <h3 className="mt-8 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
+          <h3 className="mt-8 text-2xl font-bold leading-snug tracking-tight text-gray-900 dark:text-white">
             {t("introSub2")}
           </h3>
           <div className="mt-4 space-y-4 text-lg leading-relaxed text-gray-700 dark:text-gray-300">
@@ -160,7 +160,7 @@ export default async function LandingPage() {
           <p className="text-sm font-semibold uppercase tracking-wide text-blue-600 dark:text-blue-400">
             {t("offerEyebrow")}
           </p>
-          <h2 className="mt-2 text-3xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
+          <h2 className="mt-2 text-3xl font-bold leading-snug tracking-tight text-gray-900 dark:text-white sm:text-4xl">
             {t("offerH2")}
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-gray-600 dark:text-gray-400">
@@ -206,7 +206,7 @@ export default async function LandingPage() {
 
         {/* SEO content */}
         <div className="mt-12">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+          <h2 className="text-2xl font-bold leading-snug text-gray-900 dark:text-white">
             {t("seoH2")}
           </h2>
           <p className="mt-4 text-gray-600 dark:text-gray-400">
@@ -243,7 +243,7 @@ export default async function LandingPage() {
 
         {/* Who it's for */}
         <div className="mt-12 rounded-xl border border-gray-200 bg-white p-8 dark:border-gray-700 dark:bg-gray-800">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+          <h2 className="text-2xl font-bold leading-snug text-gray-900 dark:text-white">
             {t("levelsH2")}
           </h2>
           <div className="mt-4 grid gap-4 sm:grid-cols-3">
@@ -270,7 +270,7 @@ export default async function LandingPage() {
 
         {/* FAQ */}
         <div className="mt-12">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+          <h2 className="text-2xl font-bold leading-snug text-gray-900 dark:text-white">
             {t("faqH2")}
           </h2>
           <div className="mt-6 space-y-6">
@@ -311,7 +311,7 @@ export default async function LandingPage() {
             <p className="text-sm font-semibold uppercase tracking-wide text-red-600 dark:text-red-400">
               {t("urgencyEyebrow")}
             </p>
-            <h2 className="mt-2 text-3xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
+            <h2 className="mt-2 text-3xl font-bold leading-snug tracking-tight text-gray-900 dark:text-white sm:text-4xl">
               {t("urgencyH2")}
             </h2>
             <ul className="mt-6 space-y-3 text-lg text-gray-700 dark:text-gray-300">
