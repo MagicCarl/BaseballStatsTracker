@@ -1,4 +1,9 @@
-import { SUPPORTED_LOCALES, DEFAULT_LOCALE, type Locale } from "./config";
+import { SUPPORTED_LOCALES, DEFAULT_LOCALE, isLocale, type Locale } from "./config";
+
+/** A saved language choice wins; otherwise go by the browser's language. */
+export function resolveLocale(cookieLocale: string | undefined, acceptLanguage: string): Locale {
+  return isLocale(cookieLocale) ? cookieLocale : pickLocaleFromAcceptLanguage(acceptLanguage);
+}
 
 export function pickLocaleFromAcceptLanguage(header: string): Locale {
   if (!header) return DEFAULT_LOCALE;

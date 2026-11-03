@@ -14,6 +14,13 @@ export const metadata: Metadata = {
   },
 };
 
+// Prerender in English so the page loads instantly, even when the server has been
+// idle. With force-static, cookies and headers read as empty, so the language falls
+// back to the default. src/proxy.ts sends other languages to /home-localized. The
+// daily refresh keeps the footer's copyright year current.
+export const dynamic = "force-static";
+export const revalidate = 86400;
+
 export default async function LandingPage() {
   const t = await getTranslations("marketing.landing");
 

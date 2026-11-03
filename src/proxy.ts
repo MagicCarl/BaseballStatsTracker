@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { DEFAULT_LOCALE } from "@/i18n/config";
+import { resolveLocale } from "@/i18n/detect";
 
 const CANONICAL_HOST = "www.baseballstatstracker.com";
 
@@ -10,7 +12,7 @@ export function proxy(request: NextRequest) {
   const redirect = blogDeepLinkRedirect(request);
   if (redirect) return redirect;
 
-  const response = NextResponse.next();
+  const response = localizedHomeRewrite(request) ?? NextResponse.next();
 
   // Block indexing of any host that isn't the canonical one (apex, vercel preview URLs)
   const host = request.headers.get("host") ?? "";
@@ -84,6 +86,26 @@ function blogDeepLinkRedirect(request: NextRequest): NextResponse | null {
   url.searchParams.delete("post");
 
   return NextResponse.redirect(url, 308);
+}
+
+/**
+ * The home page is prerendered in English so it loads instantly, even when the
+ * server has been idle. Anyone who needs another language gets the same page
+ * rendered per request instead. This has to happen here because the proxy runs
+ * before the CDN cache.
+ */
+function localizedHomeRewrite(request: NextRequest): NextResponse | null {
+  if (request.nextUrl.pathname !== "/") return null;
+
+  const locale = resolveLocale(
+    request.cookies.get("NEXT_LOCALE")?.value,
+    request.headers.get("accept-language") ?? ""
+  );
+  if (locale === DEFAULT_LOCALE) return null;
+
+  const url = request.nextUrl.clone();
+  url.pathname = "/home-localized";
+  return NextResponse.rewrite(url);
 }
 
 export const config = {
