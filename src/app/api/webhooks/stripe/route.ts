@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma";
+import { sendPaymentThankYouEmail } from "@/lib/email";
 
 export const runtime = "nodejs";
 
@@ -33,14 +34,36 @@ export async function POST(req: NextRequest) {
         session.metadata?.userId || session.client_reference_id || null;
       if (userId) {
         try {
-          await prisma.user.update({
+          const user = await prisma.user.update({
             where: { id: userId },
             data: { isPaid: true },
+            select: { email: true, displayName: true, welcomeEmailSentAt: true },
           });
           console.log(`[stripe webhook] marked user ${userId} as paid`);
+
+          // Access is granted before the email, so a mail outage can't lock out
+          // a paying customer. A failed send answers 500 so Stripe retries until
+          // welcomeEmailSentAt is set; the key stops a retry sending a second copy.
+          if (!user.welcomeEmailSentAt) {
+            const sent = await sendPaymentThankYouEmail(
+              user.email,
+              user.displayName,
+              `welcome/${session.id}`,
+            );
+            if (!sent) {
+              return NextResponse.json({ error: "Welcome email failed" }, { status: 500 });
+            }
+            await prisma.user.update({
+              where: { id: userId },
+              data: { welcomeEmailSentAt: new Date() },
+            });
+          }
         } catch (err) {
-          // Don't 500 back to Stripe for a missing/duplicate user — log it.
-          console.error(`[stripe webhook] could not mark ${userId} paid:`, err);
+          // Retrying can't help a user that doesn't exist; anything else can.
+          console.error(`[stripe webhook] could not complete checkout for ${userId}:`, err);
+          if ((err as { code?: string }).code !== "P2025") {
+            return NextResponse.json({ error: "Checkout processing failed" }, { status: 500 });
+          }
         }
       } else {
         console.error("[stripe webhook] no userId on completed session", session.id);

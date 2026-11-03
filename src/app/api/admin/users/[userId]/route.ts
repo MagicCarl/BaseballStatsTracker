@@ -29,7 +29,7 @@ export async function PATCH(
 
   const previous = await prisma.user.findUnique({
     where: { id: userId },
-    select: { isPaid: true },
+    select: { isPaid: true, welcomeEmailSentAt: true },
   });
 
   const updated = await prisma.user.update({
@@ -55,8 +55,14 @@ export async function PATCH(
       newPaidStatus: updated.isPaid,
     });
 
-    if (updated.isPaid && !previous?.isPaid && updated.email) {
-      await sendPaymentThankYouEmail(updated.email, updated.displayName);
+    if (updated.isPaid && !previous?.isPaid && !previous?.welcomeEmailSentAt && updated.email) {
+      const sent = await sendPaymentThankYouEmail(updated.email, updated.displayName);
+      if (sent) {
+        await prisma.user.update({
+          where: { id: userId },
+          data: { welcomeEmailSentAt: new Date() },
+        });
+      }
     }
   }
 

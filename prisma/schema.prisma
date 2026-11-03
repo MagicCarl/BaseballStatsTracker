@@ -20,6 +20,7 @@ model User {
   isPaid      Boolean  @default(false) @map("is_paid")
   isAdmin     Boolean  @default(false) @map("is_admin")
   deletedAt   DateTime? @map("deleted_at")
+  welcomeEmailSentAt DateTime? @map("welcome_email_sent_at")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
