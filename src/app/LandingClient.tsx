@@ -108,6 +108,7 @@ export default function LandingClient({
               </svg>
               <LanguageSwitcher
                 placeholder={t("selectLanguage")}
+                wrapperClassName="absolute inset-0"
                 className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
               />
             </div>
@@ -146,7 +147,7 @@ export default function LandingClient({
           {/* Phones/tablets: the photo is a full-strength banner above the copy.
               Desktop: it fills the right side and fades out behind the copy, so
               the slide itself is never washed out. */}
-          <div className="relative aspect-[3/2] w-full lg:absolute lg:inset-y-0 lg:left-[30%] lg:right-0 lg:-z-10 lg:aspect-auto lg:w-auto">
+          <div className="relative aspect-[2/1] w-full sm:aspect-[3/2] lg:absolute lg:inset-y-0 lg:left-[30%] lg:right-0 lg:-z-10 lg:aspect-auto lg:w-auto">
             <Image
               src="/hero-slide-home.jpg"
               alt={t("heroImageAlt")}
@@ -160,7 +161,8 @@ export default function LandingClient({
             <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-b from-transparent to-[#FAF8F5] lg:h-40 dark:to-gray-950" />
           </div>
 
-          <div className="relative mx-auto -mt-6 max-w-6xl px-4 pb-20 sm:px-6 lg:mt-0 lg:pb-40 lg:pt-28">
+          {/* Phone spacing is tight so the live scoreboard below starts on the first screen. */}
+          <div className="relative mx-auto -mt-6 max-w-6xl px-4 pb-12 sm:px-6 sm:pb-20 lg:mt-0 lg:pb-40 lg:pt-28">
             <div className="max-w-2xl">
               <span className="inline-flex items-center gap-2 rounded-full border border-blue-600/25 bg-white px-3 py-1 text-xs font-medium text-blue-700 sm:text-sm dark:border-blue-400/30 dark:bg-gray-900 dark:text-blue-300">
                 <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden="true">
@@ -169,15 +171,15 @@ export default function LandingClient({
                 </svg>
                 {t("heroBadge")}
               </span>
-              <h1 className="font-display mt-6 text-5xl font-extrabold leading-[1.1] tracking-tight sm:text-6xl lg:text-7xl">
+              <h1 className="font-display mt-4 text-[2.5rem] font-extrabold leading-[1.1] tracking-tight sm:mt-6 sm:text-6xl lg:text-7xl">
                 <span className="block text-[#1A1A1A] dark:text-white">{t("heroLine1")}</span>
                 <span className="block text-[#2563EB]">{t("heroLine2")}</span>
                 <span className="block text-[#16A34A]">{t("heroLine3")}</span>
               </h1>
-              <h2 className="mt-6 max-w-xl text-lg font-normal leading-relaxed text-gray-700 sm:text-xl dark:text-gray-300">
+              <h2 className="mt-3 max-w-xl sm:mt-6 text-lg font-normal leading-relaxed text-gray-700 sm:text-xl dark:text-gray-300">
                 {t("subtitle")}
               </h2>
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <div className="mt-5 flex flex-col gap-3 sm:mt-8 sm:flex-row">
                 <Link
                   href="/signup"
                   className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-6 py-3 text-base font-semibold text-white shadow-lg shadow-blue-600/20 hover:bg-blue-700"
@@ -191,7 +193,7 @@ export default function LandingClient({
                   {t("ctaPrimary")}
                 </BuyButton>
               </div>
-              <ul className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-sm text-gray-700 dark:text-gray-300">
+              <ul className="mt-4 sm:mt-6 flex flex-wrap gap-x-5 gap-y-2 text-sm text-gray-700 dark:text-gray-300">
                 {(["heroCheck1", "heroCheck2", "heroCheck3"] as const).map((key) => (
                   <li key={key} className="flex items-center gap-1.5">
                     <svg className="h-4 w-4 text-[#16A34A]" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24" aria-hidden="true">

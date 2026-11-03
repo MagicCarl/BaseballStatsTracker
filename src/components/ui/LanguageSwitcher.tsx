@@ -5,15 +5,17 @@ import { SUPPORTED_LOCALES, LOCALE_NAMES, LOCALE_FLAGS } from "@/i18n/config";
 
 export default function LanguageSwitcher({
   className,
+  wrapperClassName = "relative inline-flex items-center",
   placeholder,
 }: {
   className?: string;
+  wrapperClassName?: string;
   placeholder?: string;
 }) {
   const { language, setLanguage, languagePending } = useAuth();
 
   return (
-    <div className="relative inline-flex items-center">
+    <div className={wrapperClassName}>
       <select
         aria-label={placeholder ?? "Language"}
         aria-busy={languagePending}
