@@ -82,7 +82,7 @@ export default async function BlogArticlePage({
         )}
 
         {content ? (
-          // Content is Carl's own blog HTML from Soro's CMS, not user input.
+          // Sanitized in getSoroArticleContent before it gets here.
           <div
             className="mt-8 leading-relaxed [&_a]:text-blue-600 [&_a]:hover:underline dark:[&_a]:text-blue-400 [&_h2]:mt-10 [&_h2]:text-2xl [&_h2]:font-bold [&_h2]:text-gray-900 dark:[&_h2]:text-white [&_h3]:mt-8 [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:text-gray-900 dark:[&_h3]:text-white [&_li]:mt-1 [&_ol]:mt-3 [&_ol]:list-inside [&_ol]:list-decimal [&_p]:mt-3 [&_strong]:font-semibold [&_ul]:mt-3 [&_ul]:list-inside [&_ul]:list-disc"
             dangerouslySetInnerHTML={{ __html: content }}

@@ -11,6 +11,8 @@
  * blog rather than breaking the build or the homepage.
  */
 
+import sanitizeHtml from "sanitize-html";
+
 const SORO_TOKEN = "8d385f99-7f5f-4586-9a39-bbfdefac99ae";
 const SORO_API_BASE = "https://app.trysoro.com";
 
@@ -98,7 +100,23 @@ export async function getSoroArticle(slug: string): Promise<SoroArticle | null> 
   return articles.find((article) => article.slug === slug) ?? null;
 }
 
-/** Article body as an HTML string, or null if Soro can't serve it. */
+/**
+ * Article bodies come from a third party and render on our own domain, where
+ * customers' login sessions live, so only plain article markup gets through.
+ */
+export function sanitizeArticleHtml(html: string): string {
+  return sanitizeHtml(html, {
+    allowedTags: [
+      "h1", "h2", "h3", "h4", "h5", "h6", "p", "br", "hr", "a", "img",
+      "strong", "b", "em", "i", "u", "ul", "ol", "li", "blockquote", "code", "pre",
+      "table", "thead", "tbody", "tr", "th", "td",
+    ],
+    allowedAttributes: { a: ["href", "title"], img: ["src", "alt"] },
+    allowedSchemes: ["http", "https", "mailto"],
+  });
+}
+
+/** Sanitized article body as an HTML string, or null if Soro can't serve it. */
 export async function getSoroArticleContent(id: string): Promise<string | null> {
   try {
     const res = await fetch(`${SORO_EMBED_SRC}/article/${id}`, {
@@ -108,7 +126,7 @@ export async function getSoroArticleContent(id: string): Promise<string | null> 
 
     const data: unknown = await res.json();
     const content = (data as { content?: unknown })?.content;
-    return typeof content === "string" ? content : null;
+    return typeof content === "string" ? sanitizeArticleHtml(content) : null;
   } catch {
     return null;
   }

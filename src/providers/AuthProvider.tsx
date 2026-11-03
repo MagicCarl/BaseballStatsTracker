@@ -143,10 +143,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         document.cookie = `NEXT_LOCALE=${locale}; path=/; max-age=${60 * 60 * 24 * 365}; samesite=lax`;
       }
     } finally {
-      // Hand off to React's transition: isRefreshPending stays true until
-      // the new server-rendered content for this locale is in.
-      startTransition(() => router.refresh());
-      setLangSaving(false);
+      if (window.location.pathname === "/") {
+        // The proxy serves "/" from a different route per language, and a soft
+        // refresh can't switch routes, so the home page needs a full reload.
+        window.location.reload();
+      } else {
+        // Hand off to React's transition: isRefreshPending stays true until
+        // the new server-rendered content for this locale is in.
+        startTransition(() => router.refresh());
+        setLangSaving(false);
+      }
     }
   };
 
