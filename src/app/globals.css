@@ -30,19 +30,3 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
-
-/* Soro blog embed ships light-only colors; dark mode is the site default, so
-   its near-black titles were unreadable on the dark page. */
-.dark #soro-blog .soro-blog-card-title {
-  color: #f3f4f6;
-}
-.dark #soro-blog .soro-blog-card-excerpt {
-  color: #d1d5db;
-}
-/* Its #999 dates are 2.7:1 on the light page. */
-#soro-blog .soro-blog-card-date {
-  color: #57534e;
-}
-.dark #soro-blog .soro-blog-card-date {
-  color: #9ca3af;
-}

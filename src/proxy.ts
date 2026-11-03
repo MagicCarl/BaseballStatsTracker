@@ -48,11 +48,11 @@ export function proxy(request: NextRequest) {
     [
       "default-src 'self'",
       // Only React's dev mode needs eval.
-      `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : ""} https://apis.google.com https://*.firebaseio.com https://www.googletagmanager.com https://app.trysoro.com`,
+      `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : ""} https://apis.google.com https://*.firebaseio.com https://www.googletagmanager.com`,
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https:",
       "font-src 'self'",
-      "connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://*.firebase.google.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com wss://*.firebaseio.com https://www.googletagmanager.com https://www.google-analytics.com https://*.analytics.google.com https://*.google-analytics.com https://app.trysoro.com",
+      "connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://*.firebase.google.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com wss://*.firebaseio.com https://www.googletagmanager.com https://www.google-analytics.com https://*.analytics.google.com https://*.google-analytics.com",
       "frame-src https://*.firebaseapp.com https://accounts.google.com",
       "object-src 'none'",
       "base-uri 'self'",

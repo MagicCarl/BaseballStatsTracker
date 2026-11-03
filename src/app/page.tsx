@@ -3,7 +3,7 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import LandingClient from "./LandingClient";
 import BuyButton from "@/components/ui/BuyButton";
-import SoroBlog from "@/components/SoroBlog";
+import BlogTeasers from "@/components/BlogTeasers";
 import Footer from "@/components/layout/Footer";
 import Testimonials from "@/components/Testimonials";
 import LazyVideo from "@/components/LazyVideo";
@@ -375,10 +375,10 @@ export default async function LandingPage() {
       </section>
 
       {/* ============================================================
-          SORO BLOG EMBED
+          BLOG ARTICLES
           ============================================================ */}
       <section className="mx-auto max-w-3xl px-6 pb-16">
-        <SoroBlog />
+        <BlogTeasers />
       </section>
 
       {/* ============================================================
