@@ -41,6 +41,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (new URLSearchParams(window.location.search).get("purchase") === "success") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- the URL can only be read in the browser
       setPurchaseSuccess(true);
     }
   }, []);
@@ -57,6 +58,7 @@ export default function DashboardPage() {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- loads data on mount; state changes after the request
     fetchTeams();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

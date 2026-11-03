@@ -127,6 +127,7 @@ export default function TeamDetailPage() {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- loads data on mount; state changes after the request
     fetchTeam();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [teamId]);

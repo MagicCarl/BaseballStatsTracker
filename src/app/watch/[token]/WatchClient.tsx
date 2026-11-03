@@ -74,6 +74,7 @@ export default function WatchClient({ token }: { token: string }) {
   }, [token]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- loads data on mount; state changes after the request
     fetchGame();
   }, [fetchGame]);
 

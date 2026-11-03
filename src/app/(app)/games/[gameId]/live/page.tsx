@@ -110,8 +110,10 @@ export default function LiveScoringPage() {
   const lastHalfRef = useRef<number | null>(null);
   const selectedPitcherIdRef = useRef(selectedPitcherId);
   const selectedOurPitcherIdRef = useRef(selectedOurPitcherId);
-  selectedPitcherIdRef.current = selectedPitcherId;
-  selectedOurPitcherIdRef.current = selectedOurPitcherId;
+  useEffect(() => {
+    selectedPitcherIdRef.current = selectedPitcherId;
+    selectedOurPitcherIdRef.current = selectedOurPitcherId;
+  }, [selectedPitcherId, selectedOurPitcherId]);
 
   const fetchGame = useCallback(async () => {
     try {
@@ -193,17 +195,20 @@ export default function LiveScoringPage() {
   }, [apiFetch, gameId]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- loads data on mount; state changes after the request
     fetchGame();
   }, [fetchGame]);
 
+  const gameStatus = game?.status;
+
   // Poll for updates every 3 seconds so other devices see changes in real time
   useEffect(() => {
-    if (!game || game.status === "final") return;
+    if (!gameStatus || gameStatus === "final") return;
     const interval = setInterval(() => {
       fetchGame();
     }, 3000);
     return () => clearInterval(interval);
-  }, [game?.status, fetchGame]);
+  }, [gameStatus, fetchGame]);
 
   // Auto-select result when pitch count reaches strikeout or walk
   useEffect(() => {
@@ -223,6 +228,7 @@ export default function LiveScoringPage() {
       const lastStrikePitch = [...currentPitches].reverse().find(
         (p) => p.result === "called_strike" || p.result === "swinging_strike"
       );
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- preselects a result the scorer can still change, so it can't be derived
       setOppSelectedResult(
         lastStrikePitch?.result === "called_strike"
           ? "strikeout_looking"
