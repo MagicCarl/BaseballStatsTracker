@@ -154,7 +154,7 @@ export default function BestBaseballStatsAppsPage() {
                 name: "What is the best baseball stats app in 2026?",
                 acceptedAnswer: {
                   "@type": "Answer",
-                  text: "For most youth and amateur teams, Baseball Stats Tracker is the best overall baseball stats app in 2026 because it offers live scoring, automatic batting and pitching stats, spray charts, and real-time sync for a one-time $39 purchase with no subscription. GameChanger is the best choice if you want video clips and the widest league adoption, while iScore is best for coaches who want the deepest advanced scorekeeping.",
+                  text: "For most youth and amateur teams, Baseball Stats Tracker is the best overall baseball stats app in 2026 because it offers live scoring, automatic batting stats, pitch tracking, spray charts, and real-time sync for a one-time $39 purchase with no subscription. GameChanger is the best choice if you want video clips and the widest league adoption, while iScore is best for coaches who want the deepest advanced scorekeeping.",
                 },
               },
               {
@@ -162,7 +162,7 @@ export default function BestBaseballStatsAppsPage() {
                 name: "What is the best baseball stats app without a subscription?",
                 acceptedAnswer: {
                   "@type": "Answer",
-                  text: "Baseball Stats Tracker is the best no-subscription baseball stats app. It is a one-time $39 purchase that includes live scoring, automatic stats (AVG, OBP, SLG, OPS, ERA), spray charts, and real-time multi-device sync, with no monthly fees ever.",
+                  text: "Baseball Stats Tracker is the best no-subscription baseball stats app. It is a one-time $39 purchase that includes live scoring, automatic batting stats (AVG, OBP, SLG, OPS), spray charts, and real-time multi-device sync, with no monthly fees ever.",
                 },
               },
               {
@@ -240,7 +240,7 @@ export default function BestBaseballStatsAppsPage() {
               score each at-bat in real time, not enter everything afterward.
             </li>
             <li>
-              <strong>Automatic stats.</strong> AVG, OBP, SLG, OPS, ERA, and more
+              <strong>Automatic stats.</strong> AVG, OBP, SLG, OPS, and more
               should calculate themselves — no spreadsheets, no math degree.
             </li>
             <li>
@@ -307,7 +307,7 @@ export default function BestBaseballStatsAppsPage() {
             paying every month, Baseball Stats Tracker is a web app that does the
             core job extremely well for a single $39 payment. Score each at-bat live
             from your phone and it automatically calculates batting stats (AVG, OBP,
-            SLG, OPS), pitching stats (IP, ERA, strikeouts, walks), interactive
+            SLG, OPS), pitch-by-pitch tracking, interactive
             spray charts, and professional box scores — synced live so the whole
             family can follow along.
           </p>

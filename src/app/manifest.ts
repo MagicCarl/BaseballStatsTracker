@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "Baseball Stats Tracker",
     short_name: "Baseball Stats",
     description:
-      "Score youth baseball games live. Automatic batting stats, pitching stats, spray charts, and box scores.",
+      "Score youth baseball games live. Automatic batting stats, pitch tracking, spray charts, and box scores.",
     start_url: "/",
     display: "standalone",
     background_color: "#f9fafb",

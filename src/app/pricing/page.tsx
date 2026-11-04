@@ -8,7 +8,7 @@ import BuyButton from "@/components/ui/BuyButton";
 export const metadata: Metadata = {
   title: "Pricing - $39 One-Time Baseball & Softball Stats App",
   description:
-    "Baseball Stats Tracker costs $39 one-time with no monthly fees or subscriptions. Unlimited teams, seasons, and games. Live scoring, spray charts, batting stats, pitching stats, and box scores for youth baseball and softball.",
+    "Baseball Stats Tracker costs $39 one-time with no monthly fees or subscriptions. Unlimited teams, seasons, and games. Live scoring, spray charts, batting stats, pitch tracking, and box scores for youth baseball and softball.",
   keywords: [
     "baseball stats app price",
     "cheap baseball stats app",

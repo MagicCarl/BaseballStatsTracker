@@ -145,10 +145,10 @@ export default async function GameChangerAlternativesPage() {
               },
               {
                 "@type": "Question",
-                name: "Can I track pitching stats and spray charts without a subscription?",
+                name: "Can I track pitches and spray charts without a subscription?",
                 acceptedAnswer: {
                   "@type": "Answer",
-                  text: "Yes. Baseball Stats Tracker includes full pitching stats (IP, ERA, strikeouts, walks, pitch counts) and interactive spray charts for every player — all included in the one-time $39 price, with no subscription required.",
+                  text: "Yes. Baseball Stats Tracker includes pitch-by-pitch tracking and interactive spray charts for every player — all included in the one-time $39 price, with no subscription required. It doesn't yet save stats for individual pitchers on your own team.",
                 },
               },
               {

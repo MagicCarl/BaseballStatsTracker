@@ -98,7 +98,7 @@ const faqs = [
   },
   {
     q: "How does Baseball Stats Tracker compare to GameChanger?",
-    a: "GameChanger is powerful and popular, especially for leagues that want video and team-wide adoption, but its full stats features are billed on a recurring plan. Baseball Stats Tracker covers live scoring, batting and pitching stats, spray charts, box scores, and multi-device sync for a single $39 payment with no subscription.",
+    a: "GameChanger is powerful and popular, especially for leagues that want video and team-wide adoption, but its full stats features are billed on a recurring plan. Baseball Stats Tracker covers live scoring, batting stats, pitch tracking, spray charts, box scores, and multi-device sync for a single $39 payment with no subscription.",
   },
   {
     q: "Is there a baseball stats app with no monthly subscription?",

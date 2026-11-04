@@ -94,11 +94,11 @@ const scoringFaqs: Faq[] = [
   },
   {
     q: "Can it track pitch-by-pitch?",
-    a: "Yes, optionally. When the opposing team is batting, you can record each pitch — called strikes, swinging strikes, fouls, balls, and location — before logging the at-bat result. That builds a pitch-by-pitch record and running pitch counts for your own pitchers.",
+    a: "Yes, optionally. When the opposing team is batting, you can record each pitch — called strikes, swinging strikes, fouls, balls, and location — before logging the at-bat result. That builds a pitch-by-pitch record you can review in the game log, with a pitch count for each at-bat.",
   },
   {
     q: "Does it track my pitchers' stats?",
-    a: "Yes. The app records pitching appearances with outs recorded, hits allowed, runs, earned runs, walks, strikeouts, home runs allowed, pitch count, hit batters, and wild pitches.",
+    a: "Not yet. You can record every pitch when the other team is batting, but the app doesn't yet save stats for each of your own pitchers, such as innings pitched, ERA, strikeouts, or total pitches.",
   },
   {
     q: "Can I track the opposing team too?",
@@ -141,7 +141,7 @@ const sharingFaqs: Faq[] = [
 const statsFaqs: Faq[] = [
   {
     q: "What stats does it calculate?",
-    a: "Batting: games, at-bats, hits, doubles, triples, home runs, RBI, walks, strikeouts, stolen bases, AVG, OBP, SLG, and OPS — all calculated automatically from your scoring using standard MLB formulas. Pitching stats are tracked per appearance.",
+    a: "Batting: games, at-bats, hits, doubles, triples, home runs, RBI, walks, strikeouts, stolen bases, AVG, OBP, SLG, and OPS — all calculated automatically from your scoring using standard MLB formulas. Stats for your own pitchers aren't available yet.",
     more: (
       <>
         Not sure what OPS or OBP actually mean? Our{" "}

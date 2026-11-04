@@ -40,7 +40,7 @@ export const metadata: Metadata = {
     template: "%s | Baseball Stats Tracker",
   },
   description:
-    "Score youth baseball & softball games live from your phone. Auto batting stats, pitching stats, spray charts & box scores. $39 one-time — no subscriptions.",
+    "Score youth baseball & softball games live from your phone. Auto batting stats, pitch tracking, spray charts & box scores. $39 one-time — no subscriptions.",
   keywords: [
     "baseball stats app",
     "softball stats app",
@@ -50,7 +50,6 @@ export const metadata: Metadata = {
     "baseball scorekeeping app",
     "live game scoring baseball",
     "baseball spray chart app",
-    "pitching stats tracker",
     "best baseball stats app",
   ],
   authors: [{ name: "Baseball Stats Tracker" }],
@@ -124,7 +123,7 @@ export default async function RootLayout({
                 operatingSystem: "Web",
                 mainEntityOfPage: "https://www.baseballstatstracker.com",
                 description:
-                  "Score youth baseball and softball games live from your phone. Automatic batting stats, pitching stats, spray charts, and box scores for Little League, travel ball, and high school teams.",
+                  "Score youth baseball and softball games live from your phone. Automatic batting stats, pitch tracking, spray charts, and box scores for Little League, travel ball, and high school teams.",
                 offers: {
                   "@type": "Offer",
                   price: "39.00",
@@ -135,7 +134,7 @@ export default async function RootLayout({
                 featureList: [
                   "Live game scoring from your phone",
                   "Automatic batting stats (AVG, OBP, SLG, OPS)",
-                  "Pitching stats tracking (IP, ERA, K, BB)",
+                  "Pitch-by-pitch tracking",
                   "Interactive spray charts",
                   "Professional inning-by-inning box scores",
                   "Season stats and team records",

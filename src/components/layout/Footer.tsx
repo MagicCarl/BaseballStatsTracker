@@ -2,6 +2,8 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
 const guides = [
+  { href: "/baseball-scorekeeping-app", label: "Baseball Scorekeeping App" },
+  { href: "/live-baseball-scoring-app", label: "Live Baseball Scoring App" },
   { href: "/learn/gamechanger-vs-baseball-stats-tracker", label: "GameChanger vs BST" },
   { href: "/learn/gamechanger-alternatives", label: "GameChanger Alternatives" },
   { href: "/learn/gamechanger-pricing", label: "GameChanger Pricing" },

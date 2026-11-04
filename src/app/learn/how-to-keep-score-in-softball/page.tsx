@@ -54,7 +54,7 @@ const faqs = [
   },
   {
     q: "Is there an app that keeps softball stats for me?",
-    a: "Yes. Baseball Stats Tracker works identically for softball and baseball — tap each at-bat as it happens and it builds the box score, batting and pitching stats, and spray charts automatically. It handles 7-inning games and any lineup size, for a one-time $39 purchase with no subscription.",
+    a: "Yes. Baseball Stats Tracker works identically for softball and baseball — tap each at-bat as it happens and it builds the box score, batting stats, and spray charts automatically. It handles 7-inning games and any lineup size, for a one-time $39 purchase with no subscription.",
   },
 ];
 

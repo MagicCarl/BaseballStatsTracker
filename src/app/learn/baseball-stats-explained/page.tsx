@@ -206,7 +206,7 @@ export default function BaseballStatsExplainedPage() {
             <Link href="/features" className="text-blue-600 underline underline-offset-2 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
               score a game live with Baseball Stats Tracker
             </Link>
-            , every one of these — AVG, OBP, SLG, OPS, ERA, and more — updates
+            , your batting stats — AVG, OBP, SLG, OPS, and more — update
             automatically after each at-bat, for every player, all season long. No
             spreadsheets, no scorebook math. And it&apos;s a{" "}
             <Link href="/pricing" className="text-blue-600 underline underline-offset-2 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">

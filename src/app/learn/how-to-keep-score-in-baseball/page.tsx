@@ -53,7 +53,7 @@ const faqs = [
   },
   {
     q: "Is there an app that keeps score for me?",
-    a: "Yes. Baseball Stats Tracker lets you tap the result of each at-bat as it happens, then builds the box score, batting and pitching stats, and spray charts for you automatically — for a one-time $39 purchase with no subscription.",
+    a: "Yes. Baseball Stats Tracker lets you tap the result of each at-bat as it happens, then builds the box score, batting stats, and spray charts for you automatically — for a one-time $39 purchase with no subscription.",
   },
 ];
 
@@ -157,7 +157,7 @@ export default function HowToKeepScorePage() {
               Baseball Stats Tracker
             </Link>{" "}
             you tap the result of each at-bat as it happens, and the app builds the box
-            score, batting and pitching stats, and{" "}
+            score, batting stats, and{" "}
             <Link href="/learn/baseball-spray-chart-guide" className="text-blue-600 underline underline-offset-2 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
               spray charts
             </Link>{" "}

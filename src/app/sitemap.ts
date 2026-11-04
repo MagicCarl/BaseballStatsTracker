@@ -92,6 +92,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.85,
     },
     {
+      url: `${baseUrl}/baseball-scorekeeping-app`,
+      lastModified: new Date("2026-11-04"),
+      changeFrequency: "monthly",
+      priority: 0.85,
+    },
+    {
+      url: `${baseUrl}/live-baseball-scoring-app`,
+      lastModified: new Date("2026-11-04"),
+      changeFrequency: "monthly",
+      priority: 0.85,
+    },
+    {
       url: `${baseUrl}/free-baseball-scorecard`,
       lastModified: new Date("2026-07-06"),
       changeFrequency: "monthly",

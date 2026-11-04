@@ -6,7 +6,7 @@ import { getTranslations } from "next-intl/server";
 export const metadata: Metadata = {
   title: "Features - Baseball & Softball Stats App for Youth Teams",
   description:
-    "Live game scoring, automatic batting stats (AVG, OBP, SLG, OPS), pitching stats, spray charts, box scores, and opponent tracking. The best baseball and softball stats app for Little League, travel ball, and high school teams.",
+    "Live game scoring, automatic batting stats (AVG, OBP, SLG, OPS), pitch tracking, spray charts, box scores, and opponent tracking. The best baseball and softball stats app for Little League, travel ball, and high school teams.",
   keywords: [
     "baseball stats app features",
     "softball stats app features",
@@ -14,7 +14,6 @@ export const metadata: Metadata = {
     "baseball spray chart app",
     "youth baseball stats tracker features",
     "baseball box score app",
-    "pitching stats tracker app",
     "baseball OBP calculator",
     "baseball SLG calculator",
     "travel ball stats app",

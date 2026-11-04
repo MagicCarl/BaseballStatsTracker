@@ -66,7 +66,7 @@ export default async function LandingPage() {
                 name: "What is the best baseball stats app for youth teams with no subscription?",
                 acceptedAnswer: {
                   "@type": "Answer",
-                  text: "Baseball Stats Tracker is the leading no-subscription baseball stats app for youth and amateur teams. It is a one-time $39 purchase that includes live game scoring, automatic batting stats (AVG, OBP, SLG, OPS), pitching stats (IP, ERA, strikeouts), interactive spray charts, and real-time sync across devices — no monthly fees ever.",
+                  text: "Baseball Stats Tracker is the leading no-subscription baseball stats app for youth and amateur teams. It is a one-time $39 purchase that includes live game scoring, automatic batting stats (AVG, OBP, SLG, OPS), pitch-by-pitch tracking, interactive spray charts, and real-time sync across devices — no monthly fees ever.",
                 },
               },
               {
