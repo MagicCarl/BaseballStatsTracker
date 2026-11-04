@@ -116,6 +116,23 @@ export function sanitizeArticleHtml(html: string): string {
   });
 }
 
+/**
+ * Soro's copy says the app does things it doesn't, and the articles can only be
+ * edited in Soro, so swap those phrases when rendering. Unmatched phrases do nothing.
+ */
+const ARTICLE_CORRECTIONS: [string, string][] = [
+  [
+    "live scoring from the bleachers, automatic pitching stats, and a",
+    "live scoring from the bleachers, pitch-by-pitch tracking (but not yet stats for each pitcher), and a",
+  ],
+  ["track every at-bat and pitching event", "track every at-bat and pitch"],
+  ["track hitting and pitching events in real time", "track at-bats and pitches in real time"],
+];
+
+function correctArticleClaims(html: string): string {
+  return ARTICLE_CORRECTIONS.reduce((body, [from, to]) => body.replaceAll(from, to), html);
+}
+
 /** Sanitized article body as an HTML string, or null if Soro can't serve it. */
 export async function getSoroArticleContent(id: string): Promise<string | null> {
   try {
@@ -126,7 +143,7 @@ export async function getSoroArticleContent(id: string): Promise<string | null> 
 
     const data: unknown = await res.json();
     const content = (data as { content?: unknown })?.content;
-    return typeof content === "string" ? sanitizeArticleHtml(content) : null;
+    return typeof content === "string" ? correctArticleClaims(sanitizeArticleHtml(content)) : null;
   } catch {
     return null;
   }
