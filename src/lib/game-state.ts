@@ -57,12 +57,12 @@ const countOuts = (moves: RunnerMoves) => Object.values(moves).filter((to) => to
 
 /**
  * The most likely outcome of a result, for the scorer to correct if needed.
- * If the play ends the half-inning, runners hold, so no run counts by default.
+ * If the play ends the half-inning, everyone else holds, so no run counts by default.
  */
 export function defaultMoves(result: string, bases: Bases, outs: number): RunnerMoves {
   const moves = rawDefaultMoves(result, bases);
   if (outs + countOuts(moves) < 3) return moves;
-  return Object.fromEntries(Object.entries(moves).filter(([, to]) => to !== "home"));
+  return Object.fromEntries(Object.entries(moves).filter(([id, to]) => id === BATTER || to === "out"));
 }
 
 function rawDefaultMoves(result: string, bases: Bases): RunnerMoves {
@@ -93,8 +93,9 @@ function rawDefaultMoves(result: string, bases: Bases): RunnerMoves {
       return moves;
     }
     case "double_play": {
+      // A force at second moves up anyone else forced. Otherwise runners hold.
       const out = bases[1] ?? runners[0]?.[1];
-      return { [BATTER]: "out", ...(out ? { [out]: "out" as const } : {}) };
+      return { [BATTER]: "out", ...forcedMoves(bases), ...(out ? { [out]: "out" as const } : {}) };
     }
     case "triple_play": {
       const outs = (bases[1] ? [bases[1], ...runners.map(([, id]) => id).filter((id) => id !== bases[1])] : runners.map(([, id]) => id)).slice(0, 2);
@@ -134,20 +135,40 @@ const whereIs = (moves: RunnerMoves, bases: Bases, id: string): Destination | nu
   return held ? (Number(held[0]) as Base) : null;
 };
 
-/** Change one runner, pushing along anyone they'd otherwise land on. */
+const originOf = (bases: Bases, id: string): number => {
+  const held = (Object.entries(bases) as unknown as [string, string | null][]).find(([, r]) => r === id);
+  return held ? Number(held[0]) : 0;
+};
+
+/**
+ * Change one runner. Anyone ahead gets pushed along, and anyone behind who
+ * would pass them drops back, so runners stay in order.
+ */
 export function setRunnerMove(moves: RunnerMoves, bases: Bases, id: string, to: Destination): RunnerMoves {
-  const updated: RunnerMoves = { ...moves, [id]: to };
+  let updated: RunnerMoves = { ...moves, [id]: to };
   if (typeof to !== "number") return updated;
-  const others = [BATTER, ...occupied(bases).map(([, r]) => r)].filter((r) => r !== id);
-  for (const other of others) {
-    if (whereIs(updated, bases, other) === to) {
-      return setRunnerMove(updated, bases, other, ahead(to, 1));
+  const from = originOf(bases, id);
+
+  for (const [, other] of occupied(bases)) {
+    if (other === id || originOf(bases, other) < from) continue;
+    const at = whereIs(updated, bases, other);
+    if (typeof at === "number" && at <= to) updated = setRunnerMove(updated, bases, other, ahead(to, 1));
+  }
+
+  const behind = [BATTER, ...occupied(bases).map(([, r]) => r)].filter(
+    (other) => other !== id && originOf(bases, other) < from
+  );
+  for (const other of behind) {
+    const at = whereIs(updated, bases, other);
+    const passes = at === "home" || (typeof at === "number" && at >= to);
+    if (passes && to - 1 >= Math.max(1, originOf(bases, other))) {
+      updated = setRunnerMove(updated, bases, other, (to - 1) as Base);
     }
   }
   return updated;
 }
 
-export type MoveProblem = "unknown_runner" | "same_base" | "backward" | null;
+export type MoveProblem = "unknown_runner" | "same_base" | "backward" | "passed" | null;
 
 /** Checks a set of moves against who is actually on base. */
 export function checkMoves(moves: RunnerMoves, bases: Bases, hasBatter: boolean): MoveProblem {
@@ -164,7 +185,21 @@ export function checkMoves(moves: RunnerMoves, bases: Bases, hasBatter: boolean)
     const at = whereIs(moves, bases, id);
     return typeof at === "number" ? [at] : [];
   });
-  return new Set(landing).size === landing.length ? null : "same_base";
+  if (new Set(landing).size !== landing.length) return "same_base";
+
+  // Lead runners stay ahead of the runners behind them, unless they're out.
+  const inOrder = [...known]
+    .map((id) => ({ from: originOf(bases, id), at: whereIs(moves, bases, id) }))
+    .filter((r): r is { from: number; at: Base | "home" } => r.at !== null && r.at !== "out")
+    .sort((a, b) => a.from - b.from)
+    .map((r) => (r.at === "home" ? 4 : r.at));
+  const passed = inOrder.some((at, i) => i > 0 && at !== 4 && inOrder[i - 1] >= at);
+  return passed ? "passed" : null;
+}
+
+/** Drops moves that leave a runner where they already were. */
+export function withoutNoOps(moves: RunnerMoves, bases: Bases): RunnerMoves {
+  return Object.fromEntries(Object.entries(moves).filter(([id, to]) => to !== originOf(bases, id)));
 }
 
 export const runsInMoves = (moves: RunnerMoves) =>
@@ -187,7 +222,6 @@ export interface ReplayPlay {
   extraRuns?: number;
   rbi?: number;
   runsScored?: number;
-  caughtStealing?: number;
 }
 
 export interface GameState {
@@ -248,14 +282,14 @@ export function replayPlays(plays: ReplayPlay[]): Replay {
           if (play.type === "stolen_base") stolenBases[id] = (stolenBases[id] ?? 0) + 1;
         } else {
           next[to] = id;
-          if (play.type === "stolen_base") stolenBases[id] = (stolenBases[id] ?? 0) + 1;
+          if (play.type === "stolen_base" && bases[to] !== id) stolenBases[id] = (stolenBases[id] ?? 0) + 1;
         }
       }
       bases = next;
     } else if (play.kind === "at_bat") {
       // The old version only saved RBI, including during the switch to this one.
       runs += Math.max(play.runsScored ?? 0, play.rbi ?? 0);
-      outs += getOutsProduced(play.result ?? "") + (play.caughtStealing ?? 0);
+      outs += getOutsProduced(play.result ?? "");
     }
 
     runsByPlay[play.id] = runs;
@@ -282,7 +316,6 @@ interface PlayableAtBat {
   result: string;
   rbi: number;
   runsScored: number;
-  caughtStealing: number;
 }
 
 interface PlayableBasePlay {
@@ -306,7 +339,6 @@ export function buildPlays(atBats: PlayableAtBat[], basePlays: PlayableBasePlay[
       result: ab.result,
       rbi: ab.rbi,
       runsScored: ab.runsScored,
-      caughtStealing: ab.caughtStealing,
     })),
     ...basePlays.map((bp) => ({
       id: bp.id,
@@ -340,11 +372,12 @@ export function gameLooksOver(game: {
   isTopOfInning: boolean;
   ourScore: number;
   opponentScore: number;
-}): boolean {
+}, playedThisHalf: boolean): boolean {
   const home = game.isHome ? game.ourScore : game.opponentScore;
   const away = game.isHome ? game.opponentScore : game.ourScore;
   const inOrPastLastBottom = game.currentInning >= game.inningsCount && !game.isTopOfInning;
-  const pastRegulation = game.currentInning > game.inningsCount && game.isTopOfInning;
+  // Once the visitors bat in an extra inning, the home team still gets its turn.
+  const pastRegulation = game.currentInning > game.inningsCount && game.isTopOfInning && !playedThisHalf;
   return (inOrPastLastBottom && home > away) || (pastRegulation && home !== away);
 }
 

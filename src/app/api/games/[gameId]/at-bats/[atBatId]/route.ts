@@ -4,8 +4,10 @@ import { prisma } from "@/lib/prisma";
 import { ALL_RESULTS } from "@/lib/constants";
 import {
   BATTER,
+  EMPTY_BASES,
   RunnerMoves,
   checkMoves,
+  defaultMoves,
   normalizeRuns,
   replayPlays,
   runsInMoves,
@@ -81,10 +83,10 @@ export async function PATCH(
             throw new PlayRejected("Those runner moves don't match who's on base", 400);
           }
           moves = body.runnerMoves;
-        } else if (body.result && !isLatest) {
-          // An earlier result can only change if it leaves the batter's outcome alone.
-          const wasOut = moves[BATTER] === "out";
-          if (wasOut !== getOutsProduced(result) > 0) {
+        } else if (body.result && body.result !== existing.result && !isLatest) {
+          // An earlier result can only change if it fits where the batter ended up.
+          const usuallyOut = defaultMoves(result, EMPTY_BASES, 0)[BATTER] === "out";
+          if (usuallyOut !== (moves[BATTER] === "out")) {
             throw new PlayRejected("Undo back to this play to change that result", 409);
           }
         }
@@ -100,7 +102,11 @@ export async function PATCH(
           },
         });
       } else {
-        // Saved before runners were tracked, and later plays don't depend on it.
+        // Saved before runners were tracked. Changing its outs would shift any tracked plays after it.
+        const laterTracked = plays.some((p) => p.sequence > existing.atBatNumberInGame && p.runnerMoves);
+        if (laterTracked && getOutsProduced(result) !== getOutsProduced(existing.result)) {
+          throw new PlayRejected("Undo back to this play to change that result", 409);
+        }
         await tx.atBat.update({
           where: { id: atBatId },
           data: {

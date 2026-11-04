@@ -17,6 +17,7 @@ import {
   resultFromPitches,
   runsInMoves,
   setRunnerMove,
+  withoutNoOps,
 } from "./game-state";
 import { buildBoxScore } from "./box-score";
 import { calcBattingStats } from "./stats";
@@ -53,6 +54,17 @@ describe("defaultMoves", () => {
   it("a sacrifice fly scores the runner from third", () => {
     expect(defaultMoves("sacrifice_fly", { ...EMPTY_BASES, 3: "r3" }, 0)).toEqual({ [BATTER]: "out", r3: "home" });
   });
+  it("the third out never blocks saving: everyone else holds", () => {
+    const fc = defaultMoves("fielders_choice", loaded, 2);
+    expect(fc).toEqual({ [BATTER]: 1, r1: "out" });
+    expect(checkMoves(fc, loaded, true)).toBeNull();
+    const bunt = defaultMoves("sacrifice_bunt", { 1: null, 2: "r2", 3: "r3" }, 2);
+    expect(checkMoves(bunt, { 1: null, 2: "r2", 3: "r3" }, true)).toBeNull();
+  });
+  it("a bases-loaded double play with no outs scores the runner from third", () => {
+    expect(defaultMoves("double_play", loaded, 0)).toEqual({ [BATTER]: "out", r1: "out", r2: 3, r3: "home" });
+    expect(runsInMoves(defaultMoves("double_play", loaded, 1))).toBe(0);
+  });
   it("no run counts by default when the play makes the third out", () => {
     expect(runsInMoves(defaultMoves("sacrifice_bunt", { ...EMPTY_BASES, 3: "r3" }, 2))).toBe(0);
     expect(runsInMoves(defaultMoves("sacrifice_fly", { ...EMPTY_BASES, 3: "r3" }, 2))).toBe(0);
@@ -69,6 +81,29 @@ describe("setRunnerMove and checkMoves", () => {
     const moves = setRunnerMove({ [BATTER]: 1, r1: 2 }, onFirst, BATTER, 2);
     expect(moves).toEqual({ [BATTER]: 2, r1: 3 });
     expect(checkMoves(moves, onFirst, true)).toBeNull();
+  });
+  it("holding a lead runner keeps the trailing runner behind him", () => {
+    const two: Bases = { 1: null, 2: "r2", 3: "r3" };
+    const single = defaultMoves("single", two, 0);
+    const held = setRunnerMove(single, two, "r3", 3);
+    expect(held.r2).toBe(2);
+    expect(checkMoves(held, two, true)).toBeNull();
+    expect(runsInMoves(held)).toBe(0);
+  });
+  it("sending a trailing runner past a lead runner moves the lead runner too", () => {
+    const moved = setRunnerMove({}, { 1: "r1", 2: "r2", 3: null }, "r1", 3);
+    expect(moved).toEqual({ r1: 3, r2: "home" });
+  });
+  it("a batter who can't drop back shows a problem instead of moving", () => {
+    const held = setRunnerMove({ [BATTER]: 1, r1: 2 }, onFirst, "r1", 1);
+    expect(checkMoves(held, onFirst, true)).toBe("same_base");
+  });
+  it("catches a runner who passes another", () => {
+    expect(checkMoves({ r2: "home" }, { 1: null, 2: "r2", 3: "r3" }, false)).toBe("passed");
+    expect(checkMoves({ r1: 3 }, { 1: "r1", 2: "r2", 3: null }, false)).toBe("passed");
+  });
+  it("a lead runner put out can be passed", () => {
+    expect(checkMoves({ r3: "out", r2: "home" }, { 1: null, 2: "r2", 3: "r3" }, false)).toBeNull();
   });
   it("catches two runners on one base", () => {
     expect(checkMoves({ [BATTER]: 1 }, onFirst, true)).toBe("same_base");
@@ -144,6 +179,12 @@ describe("replayPlays", () => {
     expect(r.stolenBases).toEqual({ a: 1 });
   });
 
+  it("no steal credit for a runner who didn't move", () => {
+    const r = replayPlays([atBat("a", 1, { [BATTER]: 1 }), basePlay("s", 2, "stolen_base", { a: 1 })]);
+    expect(r.stolenBases).toEqual({});
+    expect(withoutNoOps({ a: 1 }, { 1: "a", 2: null, 3: null })).toEqual({});
+  });
+
   it("a wild pitch run counts but isn't a steal", () => {
     const r = replayPlays([atBat("a", 1, { [BATTER]: 3 }), basePlay("w", 2, "wild_pitch", { a: "home" })]);
     expect(r.state.ourScore).toBe(1);
@@ -165,9 +206,9 @@ describe("replayPlays", () => {
 
   it("still counts at-bats saved before runners were tracked", () => {
     const r = replayPlays([
-      { id: "old", kind: "at_bat", sequence: 1, isOurTeam: true, runnerMoves: null, result: "groundout", runsScored: 1, caughtStealing: 1 },
+      { id: "old", kind: "at_bat", sequence: 1, isOurTeam: true, runnerMoves: null, result: "groundout", runsScored: 1 },
     ]);
-    expect(r.state).toMatchObject({ ourScore: 1, outsInCurrentInning: 2 });
+    expect(r.state).toMatchObject({ ourScore: 1, outsInCurrentInning: 1 });
     expect(r.bases).toEqual(EMPTY_BASES);
   });
 
@@ -179,15 +220,18 @@ describe("replayPlays", () => {
 describe("gameLooksOver", () => {
   const g = (o: object) => ({ isHome: true, inningsCount: 6, currentInning: 6, isTopOfInning: false, ourScore: 0, opponentScore: 0, ...o });
   it("a walk-off, or the home team ahead going into the last bottom", () => {
-    expect(gameLooksOver(g({ ourScore: 3, opponentScore: 2 }))).toBe(true);
-    expect(gameLooksOver(g({ ourScore: 2, opponentScore: 3 }))).toBe(false);
+    expect(gameLooksOver(g({ ourScore: 3, opponentScore: 2 }), true)).toBe(true);
+    expect(gameLooksOver(g({ ourScore: 2, opponentScore: 3 }), true)).toBe(false);
   });
   it("after regulation with a winner, but not a tie", () => {
-    expect(gameLooksOver(g({ currentInning: 7, isTopOfInning: true, ourScore: 1 }))).toBe(true);
-    expect(gameLooksOver(g({ currentInning: 7, isTopOfInning: true }))).toBe(false);
+    expect(gameLooksOver(g({ currentInning: 7, isTopOfInning: true, ourScore: 1 }), false)).toBe(true);
+    expect(gameLooksOver(g({ currentInning: 7, isTopOfInning: true }), false)).toBe(false);
+  });
+  it("not while the visitors are batting in extra innings", () => {
+    expect(gameLooksOver(g({ currentInning: 7, isTopOfInning: true, opponentScore: 1 }), true)).toBe(false);
   });
   it("not before the last inning", () => {
-    expect(gameLooksOver(g({ currentInning: 3, ourScore: 9 }))).toBe(false);
+    expect(gameLooksOver(g({ currentInning: 3, ourScore: 9 }), true)).toBe(false);
   });
 });
 

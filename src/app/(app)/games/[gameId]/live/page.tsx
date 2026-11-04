@@ -10,7 +10,7 @@ import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import Modal from "@/components/ui/Modal";
 import Spinner from "@/components/ui/Spinner";
-import { BASE_PLAY_LABELS, RESULT_LABELS, RESULT_FULL_NAMES, ALL_RESULTS, AT_BAT_RESULTS, PITCH_RESULTS, PITCH_RESULT_LABELS, PITCH_RESULT_COLORS } from "@/lib/constants";
+import { RESULT_LABELS, RESULT_FULL_NAMES, ALL_RESULTS, AT_BAT_RESULTS, PITCH_RESULTS, PITCH_RESULT_LABELS, PITCH_RESULT_COLORS } from "@/lib/constants";
 import {
   BASE_PLAY_TYPES,
   BATTER,
@@ -32,6 +32,7 @@ import {
   runsInMoves,
   setRunnerMove,
   weAreBatting,
+  withoutNoOps,
 } from "@/lib/game-state";
 import BaseDiamond from "@/components/game/BaseDiamond";
 import SprayChartDiamond from "@/components/spray-chart/SprayChartDiamond";
@@ -136,7 +137,7 @@ export default function LiveScoringPage() {
   const [editingAtBatId, setEditingAtBatId] = useState<string | null>(null);
   const [editResult, setEditResult] = useState("");
   const [editMoves, setEditMoves] = useState<RunnerMoves | null>(null);
-  const [editRbi, setEditRbi] = useState(0);
+  const [editRbi, setEditRbi] = useState<number | null>(0);
   const [editRuns, setEditRuns] = useState(0);
 
   // A play between at-bats, started by tapping a runner
@@ -152,7 +153,10 @@ export default function LiveScoringPage() {
   // One id per play being entered, so a retry after a lost response can't save it twice.
   const playIdRef = useRef(crypto.randomUUID());
   // A play saved on any device clears a half-finished form, which would be out of date.
-  const lastSequenceRef = useRef<number | null>(null);
+  const lastRunnersKeyRef = useRef<string | null>(null);
+  const lastBatterKeyRef = useRef<string | null>(null);
+  const appliedSeqRef = useRef(0);
+  const pollStartedRef = useRef(0);
   // A slow poll must not overwrite the newer score from a save that finished first.
   const fetchSeqRef = useRef(0);
   // Last half-inning seen (inning * 2, +1 for the bottom), to detect changes.
@@ -164,23 +168,29 @@ export default function LiveScoringPage() {
     selectedOurPitcherIdRef.current = selectedOurPitcherId;
   }, [selectedPitcherId, selectedOurPitcherId]);
 
-  const clearForms = useCallback(() => {
+  // The runners changed, but the same batter is still up.
+  const clearPlayEntry = useCallback(() => {
     playIdRef.current = crypto.randomUUID();
     setSelectedResult(null);
     setMoves({});
     setRbiOverride(null);
-    setHitLocation(null);
-    setManualBatterIndex(null);
     setOppSelectedResult(null);
     setOppMoves({});
     setOppRbiOverride(null);
     setOppResultAuto(false);
+    setRunnerPlay(null);
+  }, []);
+
+  const clearForms = useCallback(() => {
+    clearPlayEntry();
+    setHitLocation(null);
+    setManualBatterIndex(null);
     setOppHitLocation(null);
     setManualOppBatterIndex(null);
     setCurrentPitches([]);
     setPitchLocation(null);
     setSelectedPitchResult(null);
-  }, []);
+  }, [clearPlayEntry]);
 
   const fetchGame = useCallback(async () => {
     const seq = ++fetchSeqRef.current;
@@ -219,7 +229,9 @@ export default function LiveScoringPage() {
         }
       }
 
-      if (seq !== fetchSeqRef.current) return;
+      // Only a response older than what's on screen is dropped, so slow networks still update.
+      if (seq < appliedSeqRef.current) return;
+      appliedSeqRef.current = seq;
       setGame(data);
 
       // Follow the game: whoever is batting in the current half-inning gets the
@@ -237,15 +249,18 @@ export default function LiveScoringPage() {
         lastHalfRef.current = half;
       }
 
-      const sequence = Math.max(
-        0,
-        ...data.atBats.map((ab: AtBatRecord) => ab.atBatNumberInGame),
-        ...data.basePlays.map((bp: BasePlayRecord) => bp.sequence)
-      );
-      if (lastSequenceRef.current !== null && lastSequenceRef.current !== sequence) {
+      const batterKey = data.atBats.map((ab: AtBatRecord) => ab.id).join() + half;
+      const runnersKey = JSON.stringify([
+        data.atBats.map((ab: AtBatRecord) => ab.runnerMoves),
+        data.basePlays.map((bp: BasePlayRecord) => [bp.id, bp.runnerMoves]),
+      ]);
+      if (lastBatterKeyRef.current !== null && lastBatterKeyRef.current !== batterKey) {
         clearForms();
+      } else if (lastRunnersKeyRef.current !== null && lastRunnersKeyRef.current !== runnersKey) {
+        clearPlayEntry();
       }
-      lastSequenceRef.current = sequence;
+      lastBatterKeyRef.current = batterKey;
+      lastRunnersKeyRef.current = runnersKey;
 
       if (data.opponentPitchers.length > 0 && !selectedPitcherIdRef.current) {
         setSelectedPitcherId(data.opponentPitchers[data.opponentPitchers.length - 1].id);
@@ -278,9 +293,9 @@ export default function LiveScoringPage() {
     } catch {
       // The next poll tries again
     } finally {
-      if (seq === fetchSeqRef.current) setLoading(false);
+      if (seq >= appliedSeqRef.current) setLoading(false);
     }
-  }, [apiFetch, clearForms, gameId]);
+  }, [apiFetch, clearForms, clearPlayEntry, gameId]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- loads data on mount; state changes after the request
@@ -293,7 +308,12 @@ export default function LiveScoringPage() {
   useEffect(() => {
     if (gameStatus === "final") return;
     const interval = setInterval(() => {
-      fetchGame();
+      // Don't stack requests on a slow connection, but don't wait forever on a stuck one.
+      if (Date.now() - pollStartedRef.current < 15000) return;
+      pollStartedRef.current = Date.now();
+      fetchGame().finally(() => {
+        pollStartedRef.current = 0;
+      });
     }, 3000);
     return () => clearInterval(interval);
   }, [gameStatus, fetchGame]);
@@ -399,7 +419,11 @@ export default function LiveScoringPage() {
     try {
       await apiFetch(`/api/games/${gameId}/base-plays`, {
         method: "POST",
-        body: JSON.stringify({ id: playIdRef.current, type: runnerPlay.type, runnerMoves: runnerPlay.moves }),
+        body: JSON.stringify({
+          id: playIdRef.current,
+          type: runnerPlay.type,
+          runnerMoves: withoutNoOps(runnerPlay.moves, bases),
+        }),
       });
       setRunnerPlay(null);
       playIdRef.current = crypto.randomUUID();
@@ -488,10 +512,10 @@ export default function LiveScoringPage() {
           ab?.runnerMoves
             ? {
                 result: editResult,
-                rbi: editRbi,
+                rbi: editRbi ?? defaultRbi(editResult, editMoves ?? {}),
                 ...(editMoves ? { runnerMoves: editMoves } : {}),
               }
-            : { result: editResult, rbi: editRbi, runsScored: editRuns }
+            : { result: editResult, rbi: editRbi ?? 0, runsScored: editRuns }
         ),
       });
       setEditingAtBatId(null);
@@ -871,7 +895,7 @@ export default function LiveScoringPage() {
             </div>
           </Card>
 
-          {gameLooksOver(game) && (
+          {gameLooksOver(game, playsInOrder(game).some((p) => p.inning === game.currentInning && p.isTop === game.isTopOfInning)) && (
             <div role="status" className="flex items-center justify-between gap-3 rounded-lg border border-blue-300 bg-blue-50 px-4 py-3 dark:border-blue-500/40 dark:bg-blue-500/10">
               <p className="text-sm font-semibold">{t("gameLooksOver")}</p>
               <Button size="sm" onClick={() => setShowEndGameConfirm(true)}>{t("endGame")}</Button>
@@ -1278,7 +1302,7 @@ export default function LiveScoringPage() {
                     return (
                       <div key={play.id} className="flex items-center justify-between rounded px-2 py-1 text-sm">
                         <span>
-                          <span className="italic text-gray-600 dark:text-gray-400">{BASE_PLAY_LABELS[play.type] || play.type}</span>
+                          <span className="italic text-gray-600 dark:text-gray-400">{t(`play_${play.type}`)}</span>
                           {moved.map(([id, to]) => (
                             <span key={id} className="ml-1 text-xs text-gray-500">
                               {nameFor(id)} → {destinationLabel(to, t)}
@@ -1301,9 +1325,10 @@ export default function LiveScoringPage() {
                   const isEditing = editingAtBatId === ab.id;
                   const isLatest = index === 0;
                   const tracked = !!ab.runnerMoves;
-                  const basesBefore = isEditing && isLatest
-                    ? replayPlays(buildPlays(game.atBats, game.basePlays).filter((p) => p.id !== ab.id)).bases
+                  const before = isEditing && isLatest
+                    ? replayPlays(buildPlays(game.atBats, game.basePlays).filter((p) => p.id !== ab.id))
                     : null;
+                  const basesBefore = before?.bases ?? null;
                   return (
                     <div key={ab.id}>
                       <div
@@ -1373,10 +1398,9 @@ export default function LiveScoringPage() {
                               value={editResult}
                               onChange={(e) => {
                                 setEditResult(e.target.value);
-                                if (basesBefore && editMoves) {
-                                  const next = defaultMoves(e.target.value, basesBefore, 0);
-                                  setEditMoves(next);
-                                  setEditRbi(defaultRbi(e.target.value, next));
+                                if (before && editMoves) {
+                                  setEditMoves(defaultMoves(e.target.value, before.bases, before.state.outsInCurrentInning));
+                                  setEditRbi(null);
                                 }
                               }}
                               className="rounded border border-gray-300 bg-white px-2 py-1 text-sm dark:border-gray-600 dark:bg-gray-800"
@@ -1392,12 +1416,15 @@ export default function LiveScoringPage() {
                             <RunnersPanel
                               bases={basesBefore}
                               moves={editMoves}
-                              setMoves={setEditMoves as (m: RunnerMoves) => void}
+                              setMoves={(m) => {
+                                setEditMoves(m);
+                                setEditRbi(null);
+                              }}
                               batterName={logName}
                               nameFor={nameFor}
                               result={editResult}
                               rbi={editRbi}
-                              setRbi={(n) => setEditRbi(n ?? 0)}
+                              setRbi={setEditRbi}
                             />
                           ) : (
                             <div className="grid grid-cols-2 gap-3">
@@ -1407,14 +1434,14 @@ export default function LiveScoringPage() {
                                   value={editRuns}
                                   onChange={(n) => {
                                     setEditRuns(n);
-                                    setEditRbi(Math.min(editRbi, n));
+                                    setEditRbi(Math.min(editRbi ?? 0, n));
                                   }}
                                   max={4}
                                 />
                               )}
                               <Stepper
                                 label="RBI"
-                                value={editRbi}
+                                value={editRbi ?? 0}
                                 onChange={setEditRbi}
                                 max={tracked ? ab.runsScored : editRuns}
                               />
@@ -1462,7 +1489,7 @@ export default function LiveScoringPage() {
                       : "border-gray-200 dark:border-gray-700"
                   }`}
                 >
-                  {BASE_PLAY_LABELS[type]}
+                  {t(`play_${type}`)}
                 </button>
               ))}
             </div>
@@ -1480,7 +1507,7 @@ export default function LiveScoringPage() {
                 onClick={handleSaveRunnerPlay}
                 disabled={
                   submitting ||
-                  Object.keys(runnerPlay.moves).length === 0 ||
+                  Object.keys(withoutNoOps(runnerPlay.moves, bases)).length === 0 ||
                   !!checkMoves(runnerPlay.moves, bases, false)
                 }
               >

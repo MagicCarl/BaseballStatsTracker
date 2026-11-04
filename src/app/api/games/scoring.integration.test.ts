@@ -212,6 +212,19 @@ describe.skipIf(!dbUrl)("a full game through the real routes", () => {
     expect(await basesNow()).toEqual({ 1: null, 2: null, 3: null });
   });
 
+  it("an older fielder's choice can have its RBI corrected", async () => {
+    const onFirst = (await (await us(ids.a, "fielders_choice", { runnerMoves: { batter: 1 } })).json()).id;
+    await us(ids.b, "walk", { runnerMoves: { batter: 1, [onFirst]: 2 } });
+    expect((await atBat.PATCH(req("PATCH", { result: "fielders_choice", rbi: 0 }), abp(onFirst))).status).toBe(200);
+  });
+
+  it("an old screen can't score over runners it can't see", async () => {
+    expect((await us(ids.c, "single", { rbi: 1 })).status).toBe(409);
+    const { POST } = await baseRoute();
+    await POST(req("POST", { type: "end_half" }), gp());
+    await POST(req("POST", { type: "end_half" }), gp());
+  });
+
   it("a screen still open from before this update still scores", async () => {
     const before = (await state()).ourScore;
     await us(ids.a, "home_run");

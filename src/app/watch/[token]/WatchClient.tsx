@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import Card from "@/components/ui/Card";
 import Spinner from "@/components/ui/Spinner";
-import { RESULT_LABELS } from "@/lib/constants";
+import { BASE_PLAY_LABELS, RESULT_LABELS } from "@/lib/constants";
 import { buildPlays, replayPlays } from "@/lib/game-state";
 import BaseDiamond from "@/components/game/BaseDiamond";
 import { buildBoxScore } from "@/lib/box-score";
@@ -47,6 +47,7 @@ interface WatchGame {
     extraOuts: number;
     extraRuns: number;
     runsScored: number;
+    isTop: boolean;
   }[];
   team: { name: string };
   lineupEntries: {
@@ -276,11 +277,33 @@ export default function WatchClient({ token }: { token: string }) {
         )}
 
         {/* Play-by-play (latest first for live viewers) */}
-        {game.atBats.length > 0 && (
+        {game.atBats.length + game.basePlays.length > 0 && (
           <Card>
             <h3 className="mb-3 text-sm font-semibold uppercase text-gray-500">Play-by-play</h3>
             <div className="space-y-1">
-              {[...game.atBats].reverse().map((ab) => {
+              {[
+                ...game.atBats.map((ab) => ({ order: ab.atBatNumberInGame, ab, bp: null })),
+                ...game.basePlays.map((bp) => ({ order: bp.sequence, ab: null, bp })),
+              ]
+                .sort((a, b) => b.order - a.order)
+                .map(({ ab, bp }) => {
+                if (bp) {
+                  return (
+                    <div
+                      key={bp.id}
+                      className="flex items-center justify-between rounded px-2 py-1 text-sm odd:bg-gray-50 dark:odd:bg-gray-800/50"
+                    >
+                      <span className="italic">
+                        {BASE_PLAY_LABELS[bp.type] || bp.type}
+                        {bp.runsScored > 0 && ` (${bp.runsScored} R)`}
+                      </span>
+                      <span className="text-xs text-gray-400">
+                        {bp.isTop ? "T" : "B"}{bp.inning}
+                      </span>
+                    </div>
+                  );
+                }
+                if (!ab) return null;
                 const batterName = ab.player
                   ? `${ab.player.firstName} ${ab.player.lastName}`
                   : ab.opponentBatter?.name || "Opponent";

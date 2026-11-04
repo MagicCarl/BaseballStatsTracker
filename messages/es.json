@@ -181,7 +181,15 @@
       "whereRunners": "¿Dónde terminó cada uno?",
       "batterTag": "bateador",
       "fromBase": "en {base}",
-      "movesProblem": "Dos corredores no pueden estar en la misma base. Revisa dónde terminó cada uno."
+      "movesProblem": "Los corredores no pueden compartir base ni adelantarse. Revisa dónde terminó cada uno.",
+      "play_stolen_base": "Base Robada",
+      "play_caught_stealing": "Atrapado Robando",
+      "play_wild_pitch": "Lanzamiento Descontrolado",
+      "play_passed_ball": "Passed Ball",
+      "play_balk": "Balk",
+      "play_picked_off": "Sorprendido en Base",
+      "play_other": "Otro",
+      "play_end_half": "Media entrada terminada"
     },
     "box": {
       "gameNotFound": "Juego no encontrado",
@@ -408,8 +416,8 @@
     "atBatExtrasIntro": "Además del resultado del turno, puedes registrar lo siguiente para cada aparición al plato:",
     "extraRBI": "<b>RBI</b> — Se define automáticamente según las carreras de la jugada. Cámbialo si hace falta, por ejemplo cuando una carrera anota por error.",
     "extraScored": "<b>Quién anotó</b> — La aplicación sigue a cada corredor, así que quien llega a casa recibe la carrera en su columna R, sin importar cuánto después de llegar a base.",
-    "extraSB": "<b>Bases Robadas</b> — Toca al corredor en el diamante y elige Stolen Base. El robo se acredita a ese corredor, no al bateador.",
-    "extraCS": "<b>Atrapado Robando</b> — Toca al corredor y elige Caught Stealing. Cuenta como un out y el mismo bateador sigue al bate.",
+    "extraSB": "<b>Bases Robadas</b> — Toca al corredor en el diamante y elige Base Robada. El robo se acredita a ese corredor, no al bateador.",
+    "extraCS": "<b>Atrapado Robando</b> — Toca al corredor y elige Atrapado Robando. Cuenta como un out y el mismo bateador sigue al bate.",
     "extraHitLoc": "<b>Ubicación del Batazo</b> — Para cualquier bola bateada (hit u out en juego), toca el diamante del gráfico de bateo para marcar dónde se bateó o fildeó la bola.",
     "editingPrev": "Editar un Turno Anterior",
     "editingPrevText": "¿Cometiste un error? <b>Deshacer</b> elimina la última jugada. Toca el último turno en el <b>Registro del Juego</b> para cambiar su resultado, corredores o RBI. En turnos anteriores puedes cambiar el resultado y las RBI. Para cambiar a dónde fueron los corredores en una jugada anterior, deshaz hasta llegar a ella, porque las jugadas siguientes dependen de ella.",

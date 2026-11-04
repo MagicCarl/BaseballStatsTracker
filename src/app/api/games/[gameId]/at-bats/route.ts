@@ -127,13 +127,19 @@ export async function POST(
 
       const { plays } = await loadPlays(tx, gameId);
       const moves = body.runnerMoves as RunnerMoves | undefined;
+      const { bases } = replayPlays(plays);
+
+      // A screen from before runners were tracked can't say what happened to them.
+      if (!moves && (bases[1] || bases[2] || bases[3])) {
+        throw new PlayRejected("Please refresh this page to keep scoring", 409);
+      }
 
       if (moves) {
         if (!!body.playerId !== weAreBatting(game.isHome, game.isTopOfInning)) {
           throw new PlayRejected("That team isn't batting right now", 409);
         }
         if (moves[BATTER] === undefined) throw new PlayRejected("Where did the batter end up?", 400);
-        if (checkMoves(moves, replayPlays(plays).bases, true)) {
+        if (checkMoves(moves, bases, true)) {
           throw new PlayRejected("Those runner moves don't match who's on base", 400);
         }
         if (body.result === "home_run" && moves[BATTER] !== "home") {

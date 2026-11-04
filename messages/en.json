@@ -181,7 +181,15 @@
       "whereRunners": "Where did everyone end up?",
       "batterTag": "batter",
       "fromBase": "on {base}",
-      "movesProblem": "Two runners can't share a base. Check where each one ended up."
+      "movesProblem": "Runners can't share a base or pass each other. Check where each one ended up.",
+      "play_stolen_base": "Stolen Base",
+      "play_caught_stealing": "Caught Stealing",
+      "play_wild_pitch": "Wild Pitch",
+      "play_passed_ball": "Passed Ball",
+      "play_balk": "Balk",
+      "play_picked_off": "Picked Off",
+      "play_other": "Other",
+      "play_end_half": "Half-inning ended"
     },
     "box": {
       "gameNotFound": "Game not found",

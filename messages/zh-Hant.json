@@ -181,7 +181,15 @@
       "whereRunners": "每個人最後到哪裡？",
       "batterTag": "打者",
       "fromBase": "在{base}",
-      "movesProblem": "同一個壘不能有兩位跑者。請檢查每個人最後的位置。"
+      "movesProblem": "跑者不能在同一個壘，也不能超越前面的跑者。請檢查每個人最後的位置。",
+      "play_stolen_base": "盜壘",
+      "play_caught_stealing": "盜壘失敗",
+      "play_wild_pitch": "暴投",
+      "play_passed_ball": "捕逸",
+      "play_balk": "投手犯規",
+      "play_picked_off": "牽制出局",
+      "play_other": "其他",
+      "play_end_half": "半局結束"
     },
     "box": {
       "gameNotFound": "找不到比賽",
@@ -408,8 +416,8 @@
     "atBatExtrasIntro": "除了打席結果外，你還可以為每個打席記錄以下項目：",
     "extraRBI": "<b>RBI</b> — 依這次打席的得分自動設定。必要時可修改，例如因失誤得分時。",
     "extraScored": "<b>誰得分</b> — App 會追蹤每位跑者，跑回本壘的人會記入 R 欄，不論上壘後過了多久。",
-    "extraSB": "<b>盜壘</b> — 點擊菱形圖上的跑者並選擇 Stolen Base。盜壘會記給該跑者，而不是打者。",
-    "extraCS": "<b>盜壘失敗</b> — 點擊跑者並選擇 Caught Stealing。計為一個出局，同一位打者繼續打擊。",
+    "extraSB": "<b>盜壘</b> — 點擊菱形圖上的跑者並選擇 盜壘。盜壘會記給該跑者，而不是打者。",
+    "extraCS": "<b>盜壘失敗</b> — 點擊跑者並選擇 盜壘失敗。計為一個出局，同一位打者繼續打擊。",
     "extraHitLoc": "<b>落點位置</b> — 對於任何擊出的球（安打或場內出局），點擊落點圖鑽石以標記球被擊往或處理的位置。",
     "editingPrev": "編輯先前的打席",
     "editingPrevText": "打錯了嗎？<b>復原</b>可刪除最新一筆。點擊<b>比賽記錄</b>中最新的打席，可修改結果、跑者或 RBI。較早的打席可修改結果和 RBI。若要修改較早打席的跑者動向，請復原到那一步，因為後面的打席都取決於它。",

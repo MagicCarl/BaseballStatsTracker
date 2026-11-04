@@ -47,7 +47,7 @@ export async function POST(
     if (game.status === "final") return { error: "This game has ended", status: 409 };
 
     const { plays } = await loadPlays(tx, gameId);
-    const { bases } = replayPlays(plays);
+    const { bases, state } = replayPlays(plays);
     const isEndHalf = body.type === "end_half";
 
     if (isEndHalf ? Object.keys(moves).length > 0 : Object.keys(moves).length === 0) {
@@ -67,7 +67,7 @@ export async function POST(
         isOurTeam: weAreBatting(game.isHome, game.isTopOfInning),
         type: body.type,
         runnerMoves: moves,
-        extraOuts: isEndHalf ? 3 - game.outsInCurrentInning : 0,
+        extraOuts: isEndHalf ? 3 - state.outsInCurrentInning : 0,
         extraRuns: isEndHalf ? body.extraRuns ?? 0 : 0,
       },
     });
