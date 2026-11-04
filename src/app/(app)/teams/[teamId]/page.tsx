@@ -294,8 +294,9 @@ export default function TeamDetailPage() {
   const finalGames = team.games.filter((g) => g.status === "final");
   // Games come newest first; show the streak oldest → newest, left to right.
   const lastFive = finalGames.slice(0, 5).reverse();
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  // Game dates are stored as plain dates at midnight UTC.
+  const now = new Date();
+  const today = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
   const nextGame = team.games
     .filter((g) => g.status === "scheduled" && new Date(g.gameDate) >= today)
     .sort((a, b) => new Date(a.gameDate).getTime() - new Date(b.gameDate).getTime())[0];
@@ -409,7 +410,7 @@ export default function TeamDetailPage() {
                 {nextGame.isHome ? "vs" : "@"} {nextGame.opponentName}
               </p>
               <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
-                {new Date(nextGame.gameDate).toLocaleDateString()}
+                {new Date(nextGame.gameDate).toLocaleDateString(undefined, { timeZone: "UTC" })}
               </p>
             </>
           ) : (
@@ -473,7 +474,7 @@ export default function TeamDetailPage() {
                         {game.isHome ? "vs" : "@"} {game.opponentName}
                       </p>
                       <p className="text-xs text-gray-500 dark:text-gray-400">
-                        {new Date(game.gameDate).toLocaleDateString()}
+                        {new Date(game.gameDate).toLocaleDateString(undefined, { timeZone: "UTC" })}
                         {game.status === "in_progress" && (
                           <> · {t("inProgress", { half: game.isTopOfInning ? t("top") : t("bot"), inning: game.currentInning })}</>
                         )}

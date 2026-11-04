@@ -25,7 +25,9 @@ export async function GET(
       opponentScore: true,
       currentInning: true,
       isTopOfInning: true,
+      outsInCurrentInning: true,
       team: { select: { name: true } },
+      basePlays: { orderBy: { sequence: "asc" } },
       lineupEntries: {
         orderBy: { battingOrder: "asc" },
         select: {
@@ -40,6 +42,11 @@ export async function GET(
           playerId: true,
           result: true,
           rbi: true,
+          runsScored: true,
+          runnerMoves: true,
+          atBatNumberInGame: true,
+          caughtStealing: true,
+          opponentBatterId: true,
           stolenBases: true,
           runnerScored: true,
           inning: true,

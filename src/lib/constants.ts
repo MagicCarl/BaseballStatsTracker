@@ -8,7 +8,7 @@ export const AT_BAT_RESULTS = {
   outs: [
     "strikeout_swinging", "strikeout_looking",
     "groundout", "flyout", "lineout", "popout",
-    "fielders_choice", "double_play",
+    "fielders_choice", "double_play", "triple_play",
     "sacrifice_fly", "sacrifice_bunt",
   ] as const,
   errors: ["error"] as const,
@@ -38,6 +38,7 @@ export const RESULT_LABELS: Record<string, string> = {
   popout: "PO",
   fielders_choice: "FC",
   double_play: "DP",
+  triple_play: "TP",
   sacrifice_fly: "SF",
   sacrifice_bunt: "SAC",
   error: "E",
@@ -61,6 +62,7 @@ export const RESULT_FULL_NAMES: Record<string, string> = {
   popout: "Pop Out",
   fielders_choice: "Fielder's Choice",
   double_play: "Double Play",
+  triple_play: "Triple Play",
   sacrifice_fly: "Sacrifice Fly",
   sacrifice_bunt: "Sacrifice Bunt",
   error: "Error",
@@ -84,10 +86,22 @@ export const RESULT_COLORS: Record<string, string> = {
   strikeout_looking: "#6b7280",
   fielders_choice: "#6b7280",
   double_play: "#6b7280",
+  triple_play: "#6b7280",
   sacrifice_fly: "#6b7280",
   sacrifice_bunt: "#6b7280",
   error: "#eab308",
   catchers_interference: "#a855f7",
+};
+
+export const BASE_PLAY_LABELS: Record<string, string> = {
+  stolen_base: "Stolen Base",
+  caught_stealing: "Caught Stealing",
+  wild_pitch: "Wild Pitch",
+  passed_ball: "Passed Ball",
+  balk: "Balk",
+  picked_off: "Picked Off",
+  other: "Other",
+  end_half: "Half-inning ended",
 };
 
 export const LEVELS = [

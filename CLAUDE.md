@@ -38,8 +38,8 @@ prisma/
 
 - **Auth flow**: Firebase handles authentication. `/api/auth/verify` syncs Firebase user to Prisma DB. `getAuthUser()` in `lib/auth.ts` verifies tokens and does a fast `findUnique` (only upserts for new users).
 - **Multi-tenancy**: Users own Organizations, which contain Teams. All API queries scope by `organization.ownerId` to enforce data isolation.
-- **Scoring model**: `runnerScored` is a stat field tracking whether the batter scored. `rbi` is used for score calculation. Only RBI updates the game score.
-- **OBP formula**: `(H + BB + HBP + CI) / (AB + BB + HBP + SF + CI)` - standard MLB formula.
+- **Scoring model**: Every play stores `runnerMoves`, where each runner ended up. `lib/game-state.ts` replays at-bats and `BasePlay` rows (steals, wild pitches, etc.) in order to get the score, outs, inning, who's on base and who scored. After any write, `syncGameState()` saves that replay, so `runsScored`, `runnerScored`, `stolenBases` and `caughtStealing` are derived on new at-bats. At-bats with null `runnerMoves` predate tracking and use their stored numbers. A play can only be added for the team batting in the current half, and only the latest play can be undone or have its runners changed.
+- **OBP formula**: `(H + BB + HBP) / (AB + BB + HBP + SF)` - the official formula. Catcher's interference counts in neither.
 - **Database**: Uses PgBouncer (port 6543) for queries, direct connection (port 5432) via `DIRECT_URL` for migrations.
 
 ## Commands
@@ -76,7 +76,7 @@ See `.env.example` for required variables:
 - Admin routes check `user.isAdmin` flag
 - The health endpoint (`/api/health`) requires admin auth for detailed info
 - Lineup updates use a Prisma transaction (delete + create atomically)
-- Stats calculations in `lib/stats.ts` - `calcBattingStats()` and `getOutsProduced()`
+- Stats calculations in `lib/stats.ts` - `calcBattingStats()` and `getOutsProduced()`; box score math in `lib/box-score.ts`
 - Live scoring page polls every 3s for real-time sync across devices
 
 ## Payment Model

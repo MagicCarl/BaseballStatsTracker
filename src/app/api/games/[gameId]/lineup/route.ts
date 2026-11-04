@@ -41,6 +41,12 @@ export async function PUT(
     return NextResponse.json({ error: "lineup must be an array" }, { status: 400 });
   }
 
+  const playerIds: string[] = body.lineup.map((entry: { playerId: string }) => entry.playerId);
+  const onTeam = await prisma.player.count({ where: { id: { in: playerIds }, teamId: game.teamId } });
+  if (onTeam !== new Set(playerIds).size) {
+    return NextResponse.json({ error: "Lineup has a player who isn't on this team" }, { status: 400 });
+  }
+
   // Replace all lineup entries atomically
   const entries = await prisma.$transaction(async (tx) => {
     await tx.lineupEntry.deleteMany({ where: { gameId } });

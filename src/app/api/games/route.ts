@@ -68,6 +68,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Team not found" }, { status: 404 });
   }
 
+  if (body.seasonId) {
+    const season = await prisma.season.findFirst({ where: { id: body.seasonId, teamId: body.teamId } });
+    if (!season) {
+      return NextResponse.json({ error: "Season not found for this team" }, { status: 400 });
+    }
+  }
+
   const game = await prisma.game.create({
     data: {
       teamId: body.teamId,

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
@@ -10,7 +10,30 @@ import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import Modal from "@/components/ui/Modal";
 import Spinner from "@/components/ui/Spinner";
-import { RESULT_LABELS, RESULT_FULL_NAMES, AT_BAT_RESULTS, PITCH_RESULTS, PITCH_RESULT_LABELS, PITCH_RESULT_COLORS } from "@/lib/constants";
+import { BASE_PLAY_LABELS, RESULT_LABELS, RESULT_FULL_NAMES, ALL_RESULTS, AT_BAT_RESULTS, PITCH_RESULTS, PITCH_RESULT_LABELS, PITCH_RESULT_COLORS } from "@/lib/constants";
+import {
+  BASE_PLAY_TYPES,
+  BATTER,
+  Base,
+  Bases,
+  Destination,
+  EMPTY_BASES,
+  RunnerMoves,
+  buildPlays,
+  checkMoves,
+  defaultBasePlayMoves,
+  defaultMoves,
+  defaultRbi,
+  gameLooksOver,
+  nextBatterIndex,
+  pitchCount,
+  replayPlays,
+  resultFromPitches,
+  runsInMoves,
+  setRunnerMove,
+  weAreBatting,
+} from "@/lib/game-state";
+import BaseDiamond from "@/components/game/BaseDiamond";
 import SprayChartDiamond from "@/components/spray-chart/SprayChartDiamond";
 import StrikeZone from "@/components/pitch-chart/StrikeZone";
 
@@ -37,10 +60,27 @@ interface GameDetail {
   atBats: AtBatRecord[];
   opponentPitchers: OpponentPitcherRecord[];
   opponentBatters: OpponentBatterRecord[];
+  basePlays: BasePlayRecord[];
   pitchingAppearances: PitchingAppearanceRecord[];
 }
 
+interface BasePlayRecord {
+  id: string;
+  sequence: number;
+  inning: number;
+  isTop: boolean;
+  isOurTeam: boolean;
+  type: string;
+  runnerMoves: unknown;
+  extraOuts: number;
+  extraRuns: number;
+  runsScored: number;
+}
+
 type ScoringMode = "our_batting" | "opponent_batting";
+
+const BATTED_BALL_EXCLUDED = ["walk", "hbp", "ibb", "catchers_interference", "strikeout_swinging", "strikeout_looking"];
+const isBattedBall = (result: string | null) => !!result && !BATTED_BALL_EXCLUDED.includes(result);
 
 export default function LiveScoringPage() {
   const { gameId } = useParams<{ gameId: string }>();
@@ -50,17 +90,12 @@ export default function LiveScoringPage() {
   const [game, setGame] = useState<GameDetail | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Scoring mode toggle
-  const [scoringMode, setScoringMode] = useState<ScoringMode>("our_batting");
-
   // Our batting state
   const [currentBatterIndex, setCurrentBatterIndex] = useState(0);
   const [manualBatterIndex, setManualBatterIndex] = useState<number | null>(null);
   const [selectedResult, setSelectedResult] = useState<string | null>(null);
-  const [rbi, setRbi] = useState(0);
-  const [runnerScored, setRunnerScored] = useState(false);
-  const [stolenBases, setStolenBases] = useState(0);
-  const [caughtStealing, setCaughtStealing] = useState(0);
+  const [moves, setMoves] = useState<RunnerMoves>({});
+  const [rbiOverride, setRbiOverride] = useState<number | null>(null);
   const [hitLocation, setHitLocation] = useState<{ x: number; y: number } | null>(null);
   const [selectedPitcherId, setSelectedPitcherId] = useState<string>("");
 
@@ -68,8 +103,9 @@ export default function LiveScoringPage() {
   const [currentOppBatterIndex, setCurrentOppBatterIndex] = useState(0);
   const [manualOppBatterIndex, setManualOppBatterIndex] = useState<number | null>(null);
   const [oppSelectedResult, setOppSelectedResult] = useState<string | null>(null);
-  const [oppRbi, setOppRbi] = useState(0);
-  const [oppRunnerScored, setOppRunnerScored] = useState(false);
+  const [oppMoves, setOppMoves] = useState<RunnerMoves>({});
+  const [oppRbiOverride, setOppRbiOverride] = useState<number | null>(null);
+  const [oppResultAuto, setOppResultAuto] = useState(false);
   const [oppHitLocation, setOppHitLocation] = useState<{ x: number; y: number } | null>(null);
   const [selectedOurPitcherId, setSelectedOurPitcherId] = useState<string>("");
 
@@ -96,16 +132,29 @@ export default function LiveScoringPage() {
   const [availablePlayers, setAvailablePlayers] = useState<Player[]>([]);
   const [lineupDraft, setLineupDraft] = useState<{ playerId: string; position: string }[]>([]);
 
-  // Edit at-bat state (for adding SB/CS to previous at-bats)
+  // Edit at-bat state (for correcting previous at-bats)
   const [editingAtBatId, setEditingAtBatId] = useState<string | null>(null);
-  const [editSB, setEditSB] = useState(0);
-  const [editCS, setEditCS] = useState(0);
+  const [editResult, setEditResult] = useState("");
+  const [editMoves, setEditMoves] = useState<RunnerMoves | null>(null);
+  const [editRbi, setEditRbi] = useState(0);
+  const [editRuns, setEditRuns] = useState(0);
+
+  // A play between at-bats, started by tapping a runner
+  const [runnerPlay, setRunnerPlay] = useState<{ type: string; runner: string | null; moves: RunnerMoves } | null>(null);
+  const [showEndHalf, setShowEndHalf] = useState(false);
+  const [endHalfRuns, setEndHalfRuns] = useState(0);
 
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [showShareModal, setShowShareModal] = useState(false);
   const [shareCopied, setShareCopied] = useState(false);
 
   const rosterAutoLoadedRef = useRef(false);
+  // One id per play being entered, so a retry after a lost response can't save it twice.
+  const playIdRef = useRef(crypto.randomUUID());
+  // A play saved on any device clears a half-finished form, which would be out of date.
+  const lastSequenceRef = useRef<number | null>(null);
+  // A slow poll must not overwrite the newer score from a save that finished first.
+  const fetchSeqRef = useRef(0);
   // Last half-inning seen (inning * 2, +1 for the bottom), to detect changes.
   const lastHalfRef = useRef<number | null>(null);
   const selectedPitcherIdRef = useRef(selectedPitcherId);
@@ -115,7 +164,26 @@ export default function LiveScoringPage() {
     selectedOurPitcherIdRef.current = selectedOurPitcherId;
   }, [selectedPitcherId, selectedOurPitcherId]);
 
+  const clearForms = useCallback(() => {
+    playIdRef.current = crypto.randomUUID();
+    setSelectedResult(null);
+    setMoves({});
+    setRbiOverride(null);
+    setHitLocation(null);
+    setManualBatterIndex(null);
+    setOppSelectedResult(null);
+    setOppMoves({});
+    setOppRbiOverride(null);
+    setOppResultAuto(false);
+    setOppHitLocation(null);
+    setManualOppBatterIndex(null);
+    setCurrentPitches([]);
+    setPitchLocation(null);
+    setSelectedPitchResult(null);
+  }, []);
+
   const fetchGame = useCallback(async () => {
+    const seq = ++fetchSeqRef.current;
     try {
       let data = await apiFetch(`/api/games/${gameId}`);
 
@@ -151,6 +219,7 @@ export default function LiveScoringPage() {
         }
       }
 
+      if (seq !== fetchSeqRef.current) return;
       setGame(data);
 
       // Follow the game: whoever is batting in the current half-inning gets the
@@ -159,16 +228,24 @@ export default function LiveScoringPage() {
       // The toggle still lets the scorer override it within a half-inning.
       const half = data.currentInning * 2 + (data.isTopOfInning ? 0 : 1);
       if (lastHalfRef.current !== half) {
-        const weAreBatting = data.isHome ? !data.isTopOfInning : data.isTopOfInning;
-        const mode: ScoringMode = weAreBatting ? "our_batting" : "opponent_batting";
+        const mode: ScoringMode = weAreBatting(data.isHome, data.isTopOfInning) ? "our_batting" : "opponent_batting";
         if (lastHalfRef.current !== null && half > lastHalfRef.current && data.status !== "final") {
           setSideRetired(mode);
           if (sideRetiredTimerRef.current) clearTimeout(sideRetiredTimerRef.current);
           sideRetiredTimerRef.current = setTimeout(() => setSideRetired(null), 5000);
         }
         lastHalfRef.current = half;
-        setScoringMode(mode);
       }
+
+      const sequence = Math.max(
+        0,
+        ...data.atBats.map((ab: AtBatRecord) => ab.atBatNumberInGame),
+        ...data.basePlays.map((bp: BasePlayRecord) => bp.sequence)
+      );
+      if (lastSequenceRef.current !== null && lastSequenceRef.current !== sequence) {
+        clearForms();
+      }
+      lastSequenceRef.current = sequence;
 
       if (data.opponentPitchers.length > 0 && !selectedPitcherIdRef.current) {
         setSelectedPitcherId(data.opponentPitchers[data.opponentPitchers.length - 1].id);
@@ -176,23 +253,34 @@ export default function LiveScoringPage() {
       // Advance our batter: cycle through lineup based on our team's at-bats
       if (data.lineupEntries.length > 0) {
         const ourAtBats = data.atBats.filter((ab: AtBatRecord) => ab.playerId);
-        setCurrentBatterIndex(ourAtBats.length % data.lineupEntries.length);
+        setCurrentBatterIndex(
+          nextBatterIndex(
+            data.lineupEntries.map((e: LineupEntryRecord) => e.playerId),
+            ourAtBats[ourAtBats.length - 1]?.playerId,
+            ourAtBats[ourAtBats.length - 1]?.lineupSpot
+          )
+        );
       }
       // Advance opponent batter
       if (data.opponentBatters?.length > 0) {
         const oppAtBats = data.atBats.filter((ab: AtBatRecord) => ab.opponentBatterId);
-        setCurrentOppBatterIndex(oppAtBats.length % data.opponentBatters.length);
+        setCurrentOppBatterIndex(
+          nextBatterIndex(
+            data.opponentBatters.map((b: OpponentBatterRecord) => b.id),
+            oppAtBats[oppAtBats.length - 1]?.opponentBatterId
+          )
+        );
       }
       // Set our pitcher if available
       if (data.pitchingAppearances?.length > 0 && !selectedOurPitcherIdRef.current) {
         setSelectedOurPitcherId(data.pitchingAppearances[data.pitchingAppearances.length - 1].id);
       }
     } catch {
-      // handle
+      // The next poll tries again
     } finally {
-      setLoading(false);
+      if (seq === fetchSeqRef.current) setLoading(false);
     }
-  }, [apiFetch, gameId]);
+  }, [apiFetch, clearForms, gameId]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- loads data on mount; state changes after the request
@@ -203,42 +291,35 @@ export default function LiveScoringPage() {
 
   // Poll for updates every 3 seconds so other devices see changes in real time
   useEffect(() => {
-    if (!gameStatus || gameStatus === "final") return;
+    if (gameStatus === "final") return;
     const interval = setInterval(() => {
       fetchGame();
     }, 3000);
     return () => clearInterval(interval);
   }, [gameStatus, fetchGame]);
 
-  // Auto-select result when pitch count reaches strikeout or walk
+  const replay = useMemo(
+    () => (game ? replayPlays(buildPlays(game.atBats, game.basePlays ?? [])) : null),
+    [game]
+  );
+  const bases: Bases = replay?.bases ?? EMPTY_BASES;
+  const outs = game?.outsInCurrentInning ?? 0;
+
+  // The pitches can decide the result. Undoing that pitch undoes the result.
+  const resultFromCount = resultFromPitches(currentPitches);
   useEffect(() => {
-    if (currentPitches.length === 0) return;
-    let balls = 0;
-    let strikes = 0;
-    for (const p of currentPitches) {
-      if (p.result === "ball" || p.result === "hit_by_pitch") {
-        balls++;
-      } else if (p.result === "called_strike" || p.result === "swinging_strike") {
-        strikes++;
-      } else if (p.result === "foul") {
-        if (strikes < 2) strikes++;
-      }
-    }
-    if (strikes >= 3 && !oppSelectedResult) {
-      const lastStrikePitch = [...currentPitches].reverse().find(
-        (p) => p.result === "called_strike" || p.result === "swinging_strike"
-      );
+    if (resultFromCount && !oppSelectedResult) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- preselects a result the scorer can still change, so it can't be derived
-      setOppSelectedResult(
-        lastStrikePitch?.result === "called_strike"
-          ? "strikeout_looking"
-          : "strikeout_swinging"
-      );
-    } else if (balls >= 4 && !oppSelectedResult) {
-      const lastPitch = currentPitches[currentPitches.length - 1];
-      setOppSelectedResult(lastPitch?.result === "hit_by_pitch" ? "hbp" : "walk");
+      setOppSelectedResult(resultFromCount);
+      setOppMoves(defaultMoves(resultFromCount, bases, outs));
+      setOppRbiOverride(null);
+      setOppResultAuto(true);
+    } else if (!resultFromCount && oppResultAuto) {
+      setOppSelectedResult(null);
+      setOppMoves({});
+      setOppResultAuto(false);
     }
-  }, [currentPitches, oppSelectedResult]);
+  }, [resultFromCount, oppSelectedResult, oppResultAuto, bases, outs]);
 
   // Our batting
   const activeBatterIndex = manualBatterIndex ?? currentBatterIndex;
@@ -257,26 +338,19 @@ export default function LiveScoringPage() {
       await apiFetch(`/api/games/${gameId}/at-bats`, {
         method: "POST",
         body: JSON.stringify({
+          id: playIdRef.current,
           playerId: currentBatter.playerId,
           opponentPitcherId: selectedPitcherId || null,
           result: selectedResult,
-          rbi,
-          runnerScored,
-          stolenBases,
-          caughtStealing,
-          hitLocationX: hitLocation?.x ?? null,
-          hitLocationY: hitLocation?.y ?? null,
+          runnerMoves: moves,
+          rbi: rbiOverride ?? defaultRbi(selectedResult, moves),
+          lineupSpot: activeBatterIndex + 1,
+          hitLocationX: isBattedBall(selectedResult) ? hitLocation?.x ?? null : null,
+          hitLocationY: isBattedBall(selectedResult) ? hitLocation?.y ?? null : null,
         }),
       });
 
-      setSelectedResult(null);
-      setRbi(0);
-      setRunnerScored(false);
-      setStolenBases(0);
-      setCaughtStealing(0);
-      setHitLocation(null);
-      setManualBatterIndex(null);
-
+      clearForms();
       await fetchGame();
     } catch {
       setErrorMsg(t("errAtBat"));
@@ -291,44 +365,66 @@ export default function LiveScoringPage() {
     setErrorMsg("");
 
     try {
-      const atBat = await apiFetch(`/api/games/${gameId}/at-bats`, {
+      await apiFetch(`/api/games/${gameId}/at-bats`, {
         method: "POST",
         body: JSON.stringify({
+          id: playIdRef.current,
           opponentBatterId: currentOppBatter.id,
           result: oppSelectedResult,
-          rbi: oppRbi,
-          runnerScored: oppRunnerScored,
-          hitLocationX: oppHitLocation?.x ?? null,
-          hitLocationY: oppHitLocation?.y ?? null,
+          runnerMoves: oppMoves,
+          rbi: oppRbiOverride ?? defaultRbi(oppSelectedResult, oppMoves),
+          hitLocationX: isBattedBall(oppSelectedResult) ? oppHitLocation?.x ?? null : null,
+          hitLocationY: isBattedBall(oppSelectedResult) ? oppHitLocation?.y ?? null : null,
+          pitches: currentPitches,
         }),
       });
 
-      // Save collected pitches for this at-bat
-      if (currentPitches.length > 0) {
-        for (const pitch of currentPitches) {
-          await apiFetch(`/api/games/${gameId}/at-bats/${atBat.id}/pitches`, {
-            method: "POST",
-            body: JSON.stringify({
-              result: pitch.result,
-              locationX: pitch.locationX,
-              locationY: pitch.locationY,
-            }),
-          });
-        }
-      }
-
-      setOppSelectedResult(null);
-      setOppRbi(0);
-      setOppRunnerScored(false);
-      setOppHitLocation(null);
-      setManualOppBatterIndex(null);
-      setCurrentPitches([]);
-      setPitchLocation(null);
-      setSelectedPitchResult(null);
-
+      clearForms();
       await fetchGame();
     } catch {
       setErrorMsg(t("errOppAtBat"));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const openRunnerPlay = (runner: string | null) => {
+    setRunnerPlay({ type: "stolen_base", runner, moves: defaultBasePlayMoves("stolen_base", bases, runner) });
+  };
+
+  const handleSaveRunnerPlay = async () => {
+    if (!runnerPlay) return;
+    setSubmitting(true);
+    setErrorMsg("");
+    try {
+      await apiFetch(`/api/games/${gameId}/base-plays`, {
+        method: "POST",
+        body: JSON.stringify({ id: playIdRef.current, type: runnerPlay.type, runnerMoves: runnerPlay.moves }),
+      });
+      setRunnerPlay(null);
+      playIdRef.current = crypto.randomUUID();
+      await fetchGame();
+    } catch {
+      setErrorMsg(t("errSave"));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleEndHalf = async () => {
+    setSubmitting(true);
+    setErrorMsg("");
+    try {
+      await apiFetch(`/api/games/${gameId}/base-plays`, {
+        method: "POST",
+        body: JSON.stringify({ id: playIdRef.current, type: "end_half", extraRuns: endHalfRuns }),
+      });
+      setShowEndHalf(false);
+      setEndHalfRuns(0);
+      playIdRef.current = crypto.randomUUID();
+      await fetchGame();
+    } catch {
+      setErrorMsg(t("errSave"));
     } finally {
       setSubmitting(false);
     }
@@ -352,30 +448,69 @@ export default function LiveScoringPage() {
     setCurrentPitches(currentPitches.slice(0, -1));
   };
 
+  const selectResult = (result: string) => {
+    setMoves(defaultMoves(result, bases, outs));
+    setRbiOverride(null);
+    setSelectedResult(result);
+  };
+
+  const selectOppResult = (result: string) => {
+    setOppMoves(defaultMoves(result, bases, outs));
+    setOppRbiOverride(null);
+    setOppSelectedResult(result);
+    setOppResultAuto(false);
+  };
+
   const handleUndo = async () => {
-    if (!game || game.atBats.length === 0) return;
-    const lastAtBat = game.atBats[game.atBats.length - 1];
+    if (!game || submitting) return;
+    const last = playsInOrder(game).pop();
+    if (!last) return;
+    setSubmitting(true);
+    setErrorMsg("");
     try {
-      await apiFetch(`/api/games/${gameId}/at-bats/${lastAtBat.id}`, {
-        method: "DELETE",
-      });
+      const path = last.isBasePlay ? "base-plays" : "at-bats";
+      await apiFetch(`/api/games/${gameId}/${path}/${last.id}`, { method: "DELETE" });
       await fetchGame();
     } catch {
-      // handle
+      setErrorMsg(t("errSave"));
+    } finally {
+      setSubmitting(false);
     }
   };
 
   const handleEditAtBat = async () => {
     if (!editingAtBatId) return;
+    const ab = game?.atBats.find((a) => a.id === editingAtBatId);
     try {
       await apiFetch(`/api/games/${gameId}/at-bats/${editingAtBatId}`, {
         method: "PATCH",
-        body: JSON.stringify({ stolenBases: editSB, caughtStealing: editCS }),
+        body: JSON.stringify(
+          ab?.runnerMoves
+            ? {
+                result: editResult,
+                rbi: editRbi,
+                ...(editMoves ? { runnerMoves: editMoves } : {}),
+              }
+            : { result: editResult, rbi: editRbi, runsScored: editRuns }
+        ),
       });
       setEditingAtBatId(null);
       await fetchGame();
+    } catch (e) {
+      setErrorMsg(e instanceof Error ? e.message : t("errSave"));
+    }
+  };
+
+  const handleSwitchHomeAway = async () => {
+    if (!game) return;
+    try {
+      await apiFetch(`/api/games/${gameId}`, {
+        method: "PUT",
+        body: JSON.stringify({ isHome: !game.isHome }),
+      });
+      await fetchGame();
     } catch {
-      // handle
+      setErrorMsg(t("errSave"));
     }
   };
 
@@ -387,7 +522,19 @@ export default function LiveScoringPage() {
       });
       await fetchGame();
     } catch {
-      // handle
+      setErrorMsg(t("errSave"));
+    }
+  };
+
+  const handleReopenGame = async () => {
+    try {
+      await apiFetch(`/api/games/${gameId}`, {
+        method: "PUT",
+        body: JSON.stringify({ status: "in_progress" }),
+      });
+      await fetchGame();
+    } catch {
+      setErrorMsg(t("errSave"));
     }
   };
 
@@ -406,7 +553,7 @@ export default function LiveScoringPage() {
       setShowPitcherModal(false);
       await fetchGame();
     } catch {
-      // handle
+      setErrorMsg(t("errSave"));
     }
   };
 
@@ -426,7 +573,7 @@ export default function LiveScoringPage() {
       setShowBatterModal(false);
       await fetchGame();
     } catch {
-      // handle
+      setErrorMsg(t("errSave"));
     }
   };
 
@@ -436,14 +583,16 @@ export default function LiveScoringPage() {
       const players = await apiFetch(`/api/teams/${game.teamId}/players`);
       setAvailablePlayers(players);
       setLineupDraft(
-        players.slice(0, 10).map((p: Player) => ({
-          playerId: p.id,
-          position: p.primaryPosition || "DH",
-        }))
+        game.lineupEntries.length > 0
+          ? game.lineupEntries.map((e) => ({ playerId: e.playerId, position: e.position || "DH" }))
+          : players.slice(0, 10).map((p: Player) => ({
+              playerId: p.id,
+              position: p.primaryPosition || "DH",
+            }))
       );
       setShowLineupSetup(true);
     } catch {
-      // handle
+      setErrorMsg(t("errSave"));
     }
   };
 
@@ -463,7 +612,7 @@ export default function LiveScoringPage() {
       setShowLineupSetup(false);
       await fetchGame();
     } catch {
-      // handle
+      setErrorMsg(t("errSave"));
     }
   };
 
@@ -501,19 +650,20 @@ export default function LiveScoringPage() {
   }
 
   const isFinal = game.status === "final";
+  const scoringMode: ScoringMode = weAreBatting(game.isHome, game.isTopOfInning) ? "our_batting" : "opponent_batting";
+  const hasPlays = game.atBats.length + (game.basePlays?.length ?? 0) > 0;
+  const hasRunners = !!(bases[1] || bases[2] || bases[3]);
+  const nameFor = (id: string) => {
+    const ab = game.atBats.find((a) => a.id === id);
+    if (!ab) return t("unknown");
+    return ab.player ? `${ab.player.firstName} ${ab.player.lastName}` : ab.opponentBatter?.name || t("unknown");
+  };
+  const batterName = scoringMode === "our_batting"
+    ? `${currentBatter?.player?.firstName ?? ""} ${currentBatter?.player?.lastName ?? ""}`.trim()
+    : currentOppBatter?.name ?? "";
 
   // Pitch count for current at-bat in progress
-  let countBalls = 0;
-  let countStrikes = 0;
-  for (const p of currentPitches) {
-    if (p.result === "ball" || p.result === "hit_by_pitch") {
-      countBalls++;
-    } else if (p.result === "called_strike" || p.result === "swinging_strike") {
-      countStrikes++;
-    } else if (p.result === "foul") {
-      if (countStrikes < 2) countStrikes++;
-    }
-  }
+  const { balls: countBalls, strikes: countStrikes } = pitchCount(currentPitches);
 
   const handleShare = async () => {
     setShareCopied(false);
@@ -622,7 +772,8 @@ export default function LiveScoringPage() {
       <Card>
         <div className="flex items-center justify-between">
           <div className="text-center">
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+            <p className="max-w-24 truncate text-sm font-semibold">{game.team?.name}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
               {game.isHome ? t("home") : t("away")}
             </p>
             <p className="text-3xl font-bold">{game.ourScore}</p>
@@ -651,7 +802,8 @@ export default function LiveScoringPage() {
             )}
           </div>
           <div className="text-center">
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+            <p className="max-w-24 truncate text-sm font-semibold">{game.opponentName}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
               {game.isHome ? t("away") : t("home")}
             </p>
             <p className="text-3xl font-bold">{game.opponentScore}</p>
@@ -692,32 +844,39 @@ export default function LiveScoringPage() {
           <p className="text-sm text-gray-500">
             {t("finalScore", { our: game.ourScore, opp: game.opponentScore })}
           </p>
+          <Button variant="ghost" size="sm" className="mt-3" onClick={handleReopenGame}>
+            {t("reopenGame")}
+          </Button>
         </Card>
       ) : (
         <>
-          {/* Scoring Mode Toggle */}
-          <div className="flex rounded-lg border border-gray-200 dark:border-gray-700">
-            <button
-              onClick={() => setScoringMode("our_batting")}
-              className={`flex-1 rounded-l-lg px-4 py-2 text-sm font-medium transition-colors ${
-                scoringMode === "our_batting"
-                  ? "bg-blue-600 text-white"
-                  : "bg-white text-gray-600 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300"
-              }`}
-            >
-              {t("ourTeamBatting")}
-            </button>
-            <button
-              onClick={() => setScoringMode("opponent_batting")}
-              className={`flex-1 rounded-r-lg px-4 py-2 text-sm font-medium transition-colors ${
-                scoringMode === "opponent_batting"
-                  ? "bg-red-600 text-white"
-                  : "bg-white text-gray-600 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300"
-              }`}
-            >
-              {t("opponentBatting", { name: game.opponentName })}
-            </button>
-          </div>
+          {/* Who's on base */}
+          <Card>
+            <BaseDiamond
+              bases={bases}
+              nameFor={nameFor}
+              onRunnerTap={openRunnerPlay}
+              emptyLabel={t("basesEmpty")}
+            />
+            {hasRunners && <p className="mt-2 text-center text-xs text-gray-400">{t("tapRunnerHint")}</p>}
+            <div className="mt-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs">
+              <button onClick={() => setShowEndHalf(true)} className="text-blue-600 hover:underline">
+                {t("endHalf")}
+              </button>
+              {!hasPlays && (
+                <button onClick={handleSwitchHomeAway} className="text-blue-600 hover:underline">
+                  {t("switchHomeAway")}
+                </button>
+              )}
+            </div>
+          </Card>
+
+          {gameLooksOver(game) && (
+            <div role="status" className="flex items-center justify-between gap-3 rounded-lg border border-blue-300 bg-blue-50 px-4 py-3 dark:border-blue-500/40 dark:bg-blue-500/10">
+              <p className="text-sm font-semibold">{t("gameLooksOver")}</p>
+              <Button size="sm" onClick={() => setShowEndGameConfirm(true)}>{t("endGame")}</Button>
+            </div>
+          )}
 
           {/* ========== OUR TEAM BATTING ========== */}
           {scoringMode === "our_batting" && (
@@ -779,23 +938,24 @@ export default function LiveScoringPage() {
                     {/* Result Buttons */}
                     <ResultButtons
                       selectedResult={selectedResult}
-                      onSelectResult={setSelectedResult}
+                      onSelectResult={selectResult}
                     />
 
-                    {/* Extras (RBI, SB, etc.) */}
-                    <ExtrasPanel
-                      rbi={rbi}
-                      setRbi={setRbi}
-                      runnerScored={runnerScored}
-                      setRunnerScored={setRunnerScored}
-                      stolenBases={stolenBases}
-                      setStolenBases={setStolenBases}
-                      caughtStealing={caughtStealing}
-                      setCaughtStealing={setCaughtStealing}
-                    />
+                    {selectedResult && (
+                      <RunnersPanel
+                        bases={bases}
+                        moves={moves}
+                        setMoves={setMoves}
+                        batterName={batterName}
+                        nameFor={nameFor}
+                        result={selectedResult}
+                        rbi={rbiOverride}
+                        setRbi={setRbiOverride}
+                      />
+                    )}
 
                     {/* Spray Chart */}
-                    {selectedResult && !["walk", "hbp", "ibb", "catchers_interference", "strikeout_swinging", "strikeout_looking"].includes(selectedResult) && (
+                    {isBattedBall(selectedResult) && (
                       <div className="mt-4 border-t border-gray-200 pt-4 dark:border-gray-700">
                         <p className="mb-2 text-xs font-medium text-gray-500 uppercase">
                           {t("ballLocation")}
@@ -816,14 +976,14 @@ export default function LiveScoringPage() {
                         variant="secondary"
                         size="sm"
                         onClick={handleUndo}
-                        disabled={game.atBats.length === 0}
+                        disabled={!hasPlays || submitting}
                       >
                         {t("undoLast")}
                       </Button>
                       <Button
                         className="flex-1"
                         onClick={handleRecordAtBat}
-                        disabled={!selectedResult || submitting}
+                        disabled={!selectedResult || submitting || !!checkMoves(moves, bases, true)}
                       >
                         {submitting ? t("recording") : t("recordAtBat")}
                       </Button>
@@ -832,7 +992,12 @@ export default function LiveScoringPage() {
 
                   {/* Lineup */}
                   <Card>
-                    <h3 className="mb-2 text-sm font-semibold">{t("battingOrder")}</h3>
+                    <div className="mb-2 flex items-center justify-between">
+                      <h3 className="text-sm font-semibold">{t("battingOrder")}</h3>
+                      <button onClick={openLineupSetup} className="text-xs text-blue-600 hover:underline">
+                        {t("editLineup")}
+                      </button>
+                    </div>
                     <p className="mb-2 text-xs text-gray-400">{t("tapPlayerHint")}</p>
                     <div className="space-y-1">
                       {game.lineupEntries.map((entry, idx) => (
@@ -872,10 +1037,10 @@ export default function LiveScoringPage() {
               {(!game.opponentBatters || game.opponentBatters.length === 0) ? (
                 <Card className="text-center">
                   <p className="mb-2 text-gray-500">
-                    No opponent batters added yet.
+                    {t("noOppBatters")}
                   </p>
                   <Button onClick={() => setShowBatterModal(true)}>
-                    Add Opponent Batter
+                    {t("addOppBatter")}
                   </Button>
                 </Card>
               ) : (
@@ -962,12 +1127,11 @@ export default function LiveScoringPage() {
                             interactive
                             selectedLocation={pitchLocation}
                             onLocationSelect={setPitchLocation}
-                            pitches={currentPitches.map((p, i) => ({
-                              x: p.locationX ?? 0.5,
-                              y: p.locationY ?? 0.5,
-                              result: p.result,
-                              pitchNumber: i + 1,
-                            }))}
+                            pitches={currentPitches.flatMap((p, i) =>
+                              p.locationX === null || p.locationY === null
+                                ? []
+                                : [{ x: p.locationX, y: p.locationY, result: p.result, pitchNumber: i + 1 }]
+                            )}
                             size={160}
                           />
                         </div>
@@ -1004,46 +1168,24 @@ export default function LiveScoringPage() {
                     {/* At-Bat Result Buttons */}
                     <ResultButtons
                       selectedResult={oppSelectedResult}
-                      onSelectResult={setOppSelectedResult}
+                      onSelectResult={selectOppResult}
                     />
 
-                    {/* Extras (RBI, Scored) */}
-                    <div className="mt-4 grid grid-cols-2 gap-4 border-t border-gray-200 pt-4 dark:border-gray-700">
-                      <div>
-                        <label className="text-xs text-gray-500">RBI</label>
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => setOppRbi(Math.max(0, oppRbi - 1))}
-                            className="rounded bg-gray-200 px-2 py-1 text-sm dark:bg-gray-700"
-                          >
-                            -
-                          </button>
-                          <span className="w-6 text-center font-medium">{oppRbi}</span>
-                          <button
-                            onClick={() => setOppRbi(oppRbi + 1)}
-                            className="rounded bg-gray-200 px-2 py-1 text-sm dark:bg-gray-700"
-                          >
-                            +
-                          </button>
-                        </div>
-                      </div>
-                      <div>
-                        <label className="text-xs text-gray-500">{t("scored")}</label>
-                        <button
-                          onClick={() => setOppRunnerScored(!oppRunnerScored)}
-                          className={`mt-1 block rounded-lg border px-3 py-1 text-sm ${
-                            oppRunnerScored
-                              ? "border-green-500 bg-green-50 text-green-700 dark:bg-green-900/30"
-                              : "border-gray-200 dark:border-gray-700"
-                          }`}
-                        >
-                          {oppRunnerScored ? t("yes") : t("no")}
-                        </button>
-                      </div>
-                    </div>
+                    {oppSelectedResult && (
+                      <RunnersPanel
+                        bases={bases}
+                        moves={oppMoves}
+                        setMoves={setOppMoves}
+                        batterName={batterName}
+                        nameFor={nameFor}
+                        result={oppSelectedResult}
+                        rbi={oppRbiOverride}
+                        setRbi={setOppRbiOverride}
+                      />
+                    )}
 
                     {/* Spray Chart for opponent batted balls */}
-                    {oppSelectedResult && !["walk", "hbp", "ibb", "catchers_interference", "strikeout_swinging", "strikeout_looking"].includes(oppSelectedResult) && (
+                    {isBattedBall(oppSelectedResult) && (
                       <div className="mt-4 border-t border-gray-200 pt-4 dark:border-gray-700">
                         <p className="mb-2 text-xs font-medium text-gray-500 uppercase">
                           {t("ballLocation")}
@@ -1064,14 +1206,14 @@ export default function LiveScoringPage() {
                         variant="secondary"
                         size="sm"
                         onClick={handleUndo}
-                        disabled={game.atBats.length === 0}
+                        disabled={!hasPlays || submitting}
                       >
                         {t("undoLast")}
                       </Button>
                       <Button
                         className="flex-1"
                         onClick={handleRecordOppAtBat}
-                        disabled={!oppSelectedResult || submitting}
+                        disabled={!oppSelectedResult || submitting || !!checkMoves(oppMoves, bases, true)}
                       >
                         {submitting ? t("recording") : t("recordOppAtBat", { name: game.opponentName })}
                       </Button>
@@ -1126,16 +1268,42 @@ export default function LiveScoringPage() {
           {/* Game Log */}
           <Card>
             <h3 className="mb-2 text-sm font-semibold">{t("gameLog")} <span className="font-normal text-gray-400">{t("gameLogHint")}</span></h3>
-            {game.atBats.length === 0 ? (
+            {!hasPlays ? (
               <p className="text-sm text-gray-400">{t("noAtBats")}</p>
             ) : (
-              <div className="max-h-72 space-y-1 overflow-y-auto">
-                {[...game.atBats].reverse().map((ab) => {
+              <div className={`space-y-1 ${editingAtBatId ? "" : "max-h-72 overflow-y-auto"}`}>
+                {playsInOrder(game).reverse().map((play, index) => {
+                  if (play.isBasePlay) {
+                    const moved = Object.entries((play.runnerMoves ?? {}) as RunnerMoves);
+                    return (
+                      <div key={play.id} className="flex items-center justify-between rounded px-2 py-1 text-sm">
+                        <span>
+                          <span className="italic text-gray-600 dark:text-gray-400">{BASE_PLAY_LABELS[play.type] || play.type}</span>
+                          {moved.map(([id, to]) => (
+                            <span key={id} className="ml-1 text-xs text-gray-500">
+                              {nameFor(id)} → {destinationLabel(to, t)}
+                            </span>
+                          ))}
+                          {play.runsScored > 0 && (
+                            <span className="ml-1 text-xs font-semibold text-green-600">({play.runsScored} R)</span>
+                          )}
+                        </span>
+                        <span className="text-xs text-gray-400">
+                          {play.isTop ? t("top") : t("bot")} {play.inning}
+                        </span>
+                      </div>
+                    );
+                  }
+                  const ab = game.atBats.find((a) => a.id === play.id);
+                  if (!ab) return null;
                   const isOurs = !!ab.playerId;
-                  const batterName = isOurs
-                    ? (ab.player ? `${ab.player.firstName} ${ab.player.lastName}` : t("unknown"))
-                    : ab.opponentBatter?.name || t("unknown");
+                  const logName = nameFor(ab.id);
                   const isEditing = editingAtBatId === ab.id;
+                  const isLatest = index === 0;
+                  const tracked = !!ab.runnerMoves;
+                  const basesBefore = isEditing && isLatest
+                    ? replayPlays(buildPlays(game.atBats, game.basePlays).filter((p) => p.id !== ab.id)).bases
+                    : null;
                   return (
                     <div key={ab.id}>
                       <div
@@ -1144,8 +1312,10 @@ export default function LiveScoringPage() {
                             setEditingAtBatId(null);
                           } else {
                             setEditingAtBatId(ab.id);
-                            setEditSB(ab.stolenBases);
-                            setEditCS(ab.caughtStealing);
+                            setEditResult(ab.result);
+                            setEditRbi(ab.rbi);
+                            setEditRuns(ab.runsScored);
+                            setEditMoves(tracked && isLatest ? (ab.runnerMoves as RunnerMoves) : null);
                           }
                         }}
                         className={`flex cursor-pointer items-center justify-between rounded px-2 py-1 text-sm ${
@@ -1160,11 +1330,16 @@ export default function LiveScoringPage() {
                           {!isOurs && (
                             <span className="mr-1 text-xs text-red-500">[OPP]</span>
                           )}
-                          <span className="font-medium">{batterName}</span>
+                          <span className="font-medium">{logName}</span>
                           {" - "}
                           <span className="text-gray-600 dark:text-gray-400">
                             {RESULT_LABELS[ab.result] || ab.result}
                           </span>
+                          {ab.runsScored > 0 && (
+                            <span className="ml-1 text-xs font-semibold text-green-600">
+                              ({ab.runsScored} R)
+                            </span>
+                          )}
                           {ab.rbi > 0 && (
                             <span className="ml-1 text-xs text-green-600">
                               ({ab.rbi} RBI)
@@ -1191,22 +1366,67 @@ export default function LiveScoringPage() {
                         </span>
                       </div>
                       {isEditing && (
-                        <div className="flex items-center gap-4 rounded-b bg-blue-50 px-3 py-2 dark:bg-blue-900/20">
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-xs font-medium text-gray-600 dark:text-gray-300">SB</span>
-                            <button onClick={() => setEditSB(Math.max(0, editSB - 1))} className="rounded bg-gray-200 px-1.5 py-0.5 text-xs dark:bg-gray-700">-</button>
-                            <span className="w-4 text-center text-sm font-medium">{editSB}</span>
-                            <button onClick={() => setEditSB(editSB + 1)} className="rounded bg-gray-200 px-1.5 py-0.5 text-xs dark:bg-gray-700">+</button>
-                          </div>
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-xs font-medium text-gray-600 dark:text-gray-300">CS</span>
-                            <button onClick={() => setEditCS(Math.max(0, editCS - 1))} className="rounded bg-gray-200 px-1.5 py-0.5 text-xs dark:bg-gray-700">-</button>
-                            <span className="w-4 text-center text-sm font-medium">{editCS}</span>
-                            <button onClick={() => setEditCS(editCS + 1)} className="rounded bg-gray-200 px-1.5 py-0.5 text-xs dark:bg-gray-700">+</button>
-                          </div>
+                        <div className="space-y-3 rounded-b bg-blue-50 px-3 py-3 dark:bg-blue-900/20">
+                          <label className="flex items-center gap-2 text-xs font-medium text-gray-600 dark:text-gray-300">
+                            {t("result")}
+                            <select
+                              value={editResult}
+                              onChange={(e) => {
+                                setEditResult(e.target.value);
+                                if (basesBefore && editMoves) {
+                                  const next = defaultMoves(e.target.value, basesBefore, 0);
+                                  setEditMoves(next);
+                                  setEditRbi(defaultRbi(e.target.value, next));
+                                }
+                              }}
+                              className="rounded border border-gray-300 bg-white px-2 py-1 text-sm dark:border-gray-600 dark:bg-gray-800"
+                            >
+                              {ALL_RESULTS.map((result) => (
+                                <option key={result} value={result}>
+                                  {RESULT_LABELS[result]} - {RESULT_FULL_NAMES[result]}
+                                </option>
+                              ))}
+                            </select>
+                          </label>
+                          {basesBefore && editMoves ? (
+                            <RunnersPanel
+                              bases={basesBefore}
+                              moves={editMoves}
+                              setMoves={setEditMoves as (m: RunnerMoves) => void}
+                              batterName={logName}
+                              nameFor={nameFor}
+                              result={editResult}
+                              rbi={editRbi}
+                              setRbi={(n) => setEditRbi(n ?? 0)}
+                            />
+                          ) : (
+                            <div className="grid grid-cols-2 gap-3">
+                              {!tracked && (
+                                <Stepper
+                                  label={t("runsOnPlay")}
+                                  value={editRuns}
+                                  onChange={(n) => {
+                                    setEditRuns(n);
+                                    setEditRbi(Math.min(editRbi, n));
+                                  }}
+                                  max={4}
+                                />
+                              )}
+                              <Stepper
+                                label="RBI"
+                                value={editRbi}
+                                onChange={setEditRbi}
+                                max={tracked ? ab.runsScored : editRuns}
+                              />
+                            </div>
+                          )}
+                          {tracked && !isLatest && (
+                            <p className="text-xs text-gray-500 dark:text-gray-400">{t("undoToChangeRunners")}</p>
+                          )}
                           <button
                             onClick={handleEditAtBat}
-                            className="ml-auto rounded bg-blue-600 px-3 py-1 text-xs font-medium text-white hover:bg-blue-700"
+                            disabled={!!(basesBefore && editMoves && checkMoves(editMoves, basesBefore, true))}
+                            className="rounded bg-blue-600 px-4 py-2 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50"
                           >
                             {tc("save")}
                           </button>
@@ -1220,6 +1440,74 @@ export default function LiveScoringPage() {
           </Card>
         </>
       )}
+
+      {/* Runner play modal */}
+      <Modal
+        isOpen={!!runnerPlay}
+        onClose={() => setRunnerPlay(null)}
+        title={t("runnerPlayTitle")}
+      >
+        {runnerPlay && (
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-2">
+              {BASE_PLAY_TYPES.map((type) => (
+                <button
+                  key={type}
+                  onClick={() =>
+                    setRunnerPlay({ ...runnerPlay, type, moves: defaultBasePlayMoves(type, bases, runnerPlay.runner) })
+                  }
+                  className={`rounded-lg border px-2 py-2 text-sm ${
+                    runnerPlay.type === type
+                      ? "border-blue-500 bg-blue-50 dark:bg-blue-900/30"
+                      : "border-gray-200 dark:border-gray-700"
+                  }`}
+                >
+                  {BASE_PLAY_LABELS[type]}
+                </button>
+              ))}
+            </div>
+            <RunnersPanel
+              bases={bases}
+              moves={runnerPlay.moves}
+              setMoves={(m) => setRunnerPlay({ ...runnerPlay, moves: m })}
+              nameFor={nameFor}
+            />
+            <div className="flex justify-end gap-3">
+              <Button variant="secondary" onClick={() => setRunnerPlay(null)}>
+                {tc("cancel")}
+              </Button>
+              <Button
+                onClick={handleSaveRunnerPlay}
+                disabled={
+                  submitting ||
+                  Object.keys(runnerPlay.moves).length === 0 ||
+                  !!checkMoves(runnerPlay.moves, bases, false)
+                }
+              >
+                {tc("save")}
+              </Button>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* End half-inning modal */}
+      <Modal
+        isOpen={showEndHalf}
+        onClose={() => setShowEndHalf(false)}
+        title={t("endHalf")}
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-gray-600 dark:text-gray-300">{t("endHalfExplain")}</p>
+          <Stepper label={t("runsThisHalf")} value={endHalfRuns} onChange={setEndHalfRuns} max={99} />
+          <div className="flex justify-end gap-3">
+            <Button variant="secondary" onClick={() => setShowEndHalf(false)}>
+              {tc("cancel")}
+            </Button>
+            <Button onClick={handleEndHalf} disabled={submitting}>{t("endHalf")}</Button>
+          </div>
+        </div>
+      </Modal>
 
       {/* Add Pitcher Modal */}
       <Modal
@@ -1543,99 +1831,182 @@ function ResultButtons({
           ))}
         </div>
       </div>
+      <div>
+        <p className="mb-1 text-xs font-medium text-gray-500 uppercase">{t("reachedOnError")}</p>
+        <div className="grid grid-cols-4 gap-2">
+          {AT_BAT_RESULTS.errors.map((result) => (
+            <button
+              key={result}
+              title={RESULT_FULL_NAMES[result]}
+              onClick={() => onSelectResult(result)}
+              className={`flex flex-col items-center rounded-lg border px-2 py-1.5 transition-colors ${
+                selectedResult === result
+                  ? "border-yellow-500 bg-yellow-50 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
+                  : "border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"
+              }`}
+            >
+              <span className="text-sm font-medium">{RESULT_LABELS[result]}</span>
+              <span className="text-[10px] leading-tight text-gray-400">{RESULT_FULL_NAMES[result]}</span>
+            </button>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
 
-function ExtrasPanel({
-  rbi,
-  setRbi,
-  runnerScored,
-  setRunnerScored,
-  stolenBases,
-  setStolenBases,
-  caughtStealing,
-  setCaughtStealing,
+function Stepper({
+  label,
+  value,
+  onChange,
+  max,
 }: {
-  rbi: number;
-  setRbi: (v: number) => void;
-  runnerScored: boolean;
-  setRunnerScored: (v: boolean) => void;
-  stolenBases: number;
-  setStolenBases: (v: number) => void;
-  caughtStealing: number;
-  setCaughtStealing: (v: number) => void;
+  label: string;
+  value: number;
+  onChange: (next: number) => void;
+  max: number;
 }) {
-  const t = useTranslations("games.live");
   return (
-    <div className="mt-4 grid grid-cols-2 gap-4 border-t border-gray-200 pt-4 dark:border-gray-700 sm:grid-cols-4">
-      <div>
-        <label className="text-xs text-gray-500">RBI</label>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setRbi(Math.max(0, rbi - 1))}
-            className="rounded bg-gray-200 px-2 py-1 text-sm dark:bg-gray-700"
-          >
-            -
-          </button>
-          <span className="w-6 text-center font-medium">{rbi}</span>
-          <button
-            onClick={() => setRbi(rbi + 1)}
-            className="rounded bg-gray-200 px-2 py-1 text-sm dark:bg-gray-700"
-          >
-            +
-          </button>
-        </div>
-      </div>
-      <div>
-        <label className="text-xs text-gray-500">{t("scored")}</label>
+    <div>
+      <label className="text-xs text-gray-500">{label}</label>
+      <div className="flex items-center gap-2">
         <button
-          onClick={() => setRunnerScored(!runnerScored)}
-          className={`mt-1 block rounded-lg border px-3 py-1 text-sm ${
-            runnerScored
-              ? "border-green-500 bg-green-50 text-green-700 dark:bg-green-900/30"
-              : "border-gray-200 dark:border-gray-700"
-          }`}
+          type="button"
+          aria-label={`${label} -`}
+          onClick={() => onChange(Math.max(0, value - 1))}
+          className="rounded bg-gray-200 px-3 py-1.5 text-sm dark:bg-gray-700"
         >
-          {runnerScored ? t("yes") : t("no")}
+          -
+        </button>
+        <span className="w-6 text-center font-medium">{value}</span>
+        <button
+          type="button"
+          aria-label={`${label} +`}
+          onClick={() => onChange(Math.min(max, value + 1))}
+          className="rounded bg-gray-200 px-3 py-1.5 text-sm dark:bg-gray-700"
+        >
+          +
         </button>
       </div>
-      <div>
-        <label className="text-xs text-gray-500">SB</label>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setStolenBases(Math.max(0, stolenBases - 1))}
-            className="rounded bg-gray-200 px-2 py-1 text-sm dark:bg-gray-700"
-          >
-            -
-          </button>
-          <span className="w-6 text-center font-medium">{stolenBases}</span>
-          <button
-            onClick={() => setStolenBases(stolenBases + 1)}
-            className="rounded bg-gray-200 px-2 py-1 text-sm dark:bg-gray-700"
-          >
-            +
-          </button>
+    </div>
+  );
+}
+
+function destinationLabel(to: Destination, t: ReturnType<typeof useTranslations>) {
+  if (to === "home") return t("baseHome");
+  if (to === "out") return t("baseOut");
+  return t(`base${to}`);
+}
+
+function playsInOrder(game: GameDetail) {
+  return [
+    ...game.atBats.map((ab) => ({
+      id: ab.id,
+      order: ab.atBatNumberInGame,
+      isBasePlay: false,
+      runnerMoves: ab.runnerMoves,
+      type: "",
+      runsScored: ab.runsScored,
+      inning: ab.inning,
+      isTop: ab.isTop,
+    })),
+    ...(game.basePlays ?? []).map((bp) => ({
+      id: bp.id,
+      order: bp.sequence,
+      isBasePlay: true,
+      runnerMoves: bp.runnerMoves,
+      type: bp.type,
+      runsScored: bp.runsScored,
+      inning: bp.inning,
+      isTop: bp.isTop,
+    })),
+  ].sort((a, b) => a.order - b.order);
+}
+
+/** Where everyone ended up. Filled in from the result, for the scorer to correct. */
+function RunnersPanel({
+  bases,
+  moves,
+  setMoves,
+  batterName,
+  nameFor,
+  result,
+  rbi,
+  setRbi,
+}: {
+  bases: Bases;
+  moves: RunnerMoves;
+  setMoves: (moves: RunnerMoves) => void;
+  /** Left out for plays between at-bats, when the batter stays up. */
+  batterName?: string;
+  nameFor: (id: string) => string;
+  result?: string;
+  rbi?: number | null;
+  setRbi?: (rbi: number | null) => void;
+}) {
+  const t = useTranslations("games.live");
+  const runs = runsInMoves(moves);
+  const hasBatter = batterName !== undefined;
+  const problem = checkMoves(moves, bases, hasBatter);
+  const shownRbi = Math.min(rbi ?? defaultRbi(result ?? null, moves), runs);
+
+  const rows: { id: string; label: string; from: Base | 0 }[] = [
+    ...([3, 2, 1] as Base[]).flatMap((b) =>
+      bases[b] ? [{ id: bases[b] as string, label: nameFor(bases[b] as string), from: b }] : []
+    ),
+    ...(hasBatter ? [{ id: BATTER, label: batterName ?? "", from: 0 as const }] : []),
+  ];
+
+  return (
+    <div className="mt-4 space-y-3 border-t border-gray-200 pt-4 dark:border-gray-700">
+      <p className="text-xs font-medium text-gray-500 uppercase">{t("whereRunners")}</p>
+      {rows.map(({ id, label, from }) => {
+        const current: Destination | null = moves[id] ?? (from === 0 ? null : from);
+        return (
+          <div key={id}>
+            <p className="mb-1 text-sm font-medium">
+              {label}{" "}
+              <span className="text-xs font-normal text-gray-400">
+                {from === 0 ? t("batterTag") : t("fromBase", { base: destinationLabel(from, t) })}
+              </span>
+            </p>
+            <div className="grid grid-cols-5 gap-1">
+              {([1, 2, 3, "home", "out"] as Destination[]).map((to) => (
+                <button
+                  key={to}
+                  type="button"
+                  aria-pressed={current === to}
+                  disabled={typeof to === "number" && to < from}
+                  onClick={() => setMoves(setRunnerMove(moves, bases, id, to))}
+                  className={`rounded border px-1 py-2 text-xs font-medium disabled:opacity-30 ${
+                    current === to
+                      ? to === "home"
+                        ? "border-green-500 bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300"
+                        : to === "out"
+                        ? "border-red-500 bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300"
+                        : "border-blue-500 bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300"
+                      : "border-gray-200 dark:border-gray-700"
+                  }`}
+                >
+                  {destinationLabel(to, t)}
+                </button>
+              ))}
+            </div>
+          </div>
+        );
+      })}
+      {problem && (
+        <p role="alert" className="text-xs font-medium text-red-600 dark:text-red-400">{t("movesProblem")}</p>
+      )}
+      {setRbi && (
+        <div className="flex items-end justify-between rounded-lg bg-green-50 p-3 dark:bg-green-900/20">
+          <div>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{t("runsOnPlay")}</p>
+            <p className="text-2xl font-bold" data-testid="runs-on-play">{runs}</p>
+          </div>
+          <Stepper label="RBI" value={shownRbi} onChange={setRbi} max={runs} />
         </div>
-      </div>
-      <div>
-        <label className="text-xs text-gray-500">CS</label>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setCaughtStealing(Math.max(0, caughtStealing - 1))}
-            className="rounded bg-gray-200 px-2 py-1 text-sm dark:bg-gray-700"
-          >
-            -
-          </button>
-          <span className="w-6 text-center font-medium">{caughtStealing}</span>
-          <button
-            onClick={() => setCaughtStealing(caughtStealing + 1)}
-            className="rounded bg-gray-200 px-2 py-1 text-sm dark:bg-gray-700"
-          >
-            +
-          </button>
-        </div>
-      </div>
+      )}
     </div>
   );
 }

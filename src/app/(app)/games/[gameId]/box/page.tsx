@@ -7,19 +7,8 @@ import { useTranslations } from "next-intl";
 import { useApi } from "@/hooks/useApi";
 import Card from "@/components/ui/Card";
 import Spinner from "@/components/ui/Spinner";
-import { RESULT_LABELS, AT_BAT_RESULTS } from "@/lib/constants";
-
-interface PlayerBoxLine {
-  name: string;
-  ab: number;
-  hits: number;
-  runs: number;
-  rbi: number;
-  bb: number;
-  k: number;
-  sb: number;
-  avg: string;
-}
+import { BASE_PLAY_LABELS, RESULT_LABELS } from "@/lib/constants";
+import { buildBoxScore } from "@/lib/box-score";
 
 export default function BoxScorePage() {
   const { gameId } = useParams<{ gameId: string }>();
@@ -48,66 +37,7 @@ export default function BoxScorePage() {
     return <p className="py-10 text-center text-gray-500">{t("gameNotFound")}</p>;
   }
 
-  // Calculate box score lines per player
-  const playerMap = new Map<string, PlayerBoxLine>();
-
-  for (const entry of game.lineupEntries) {
-    const p = entry.player;
-    playerMap.set(p.id, {
-      name: `${p.firstName} ${p.lastName}`,
-      ab: 0, hits: 0, runs: 0, rbi: 0, bb: 0, k: 0, sb: 0, avg: ".000",
-    });
-  }
-
-  for (const ab of game.atBats) {
-    const line = playerMap.get(ab.playerId);
-    if (!line) continue;
-
-    const isHit = (AT_BAT_RESULTS.hits as readonly string[]).includes(ab.result);
-    const isWalk = ab.result === "walk" || ab.result === "hbp" || ab.result === "ibb";
-    const isK = ab.result === "strikeout_swinging" || ab.result === "strikeout_looking";
-    const isSac = ab.result === "sacrifice_fly" || ab.result === "sacrifice_bunt";
-
-    if (!isWalk && !isSac) line.ab++;
-    if (isHit) line.hits++;
-    if (ab.runnerScored) line.runs++;
-    line.rbi += ab.rbi;
-    if (isWalk) line.bb++;
-    if (isK) line.k++;
-    line.sb += ab.stolenBases;
-
-    line.avg = line.ab > 0
-      ? (line.hits / line.ab).toFixed(3).replace(/^0/, "")
-      : ".000";
-  }
-
-  const boxLines = Array.from(playerMap.values());
-
-  // Build inning-by-inning scoreboard
-  const innings = game.inningsCount || 6;
-  const ourRunsByInning: number[] = Array(innings).fill(0);
-  const oppRunsByInning: number[] = Array(innings).fill(0);
-  let ourHits = 0;
-  let oppHits = 0;
-  let ourErrors = 0;
-  let oppErrors = 0;
-
-  for (const ab of game.atBats) {
-    const inningIdx = Math.min(ab.inning - 1, innings - 1);
-    const isOurBatting = !!ab.playerId;
-    const isHit = (AT_BAT_RESULTS.hits as readonly string[]).includes(ab.result);
-    const isError = ab.result === "error";
-
-    if (isOurBatting) {
-      if (ab.runnerScored) ourRunsByInning[inningIdx]++;
-      if (isHit) ourHits++;
-      if (isError) oppErrors++;
-    } else {
-      if (ab.runnerScored) oppRunsByInning[inningIdx]++;
-      if (isHit) oppHits++;
-      if (isError) ourErrors++;
-    }
-  }
+  const { boxLines, innings, ourRunsByInning, oppRunsByInning, ourHits, oppHits, ourErrors, oppErrors } = buildBoxScore(game);
 
   // Team display names
   const ourTeamName = game.team?.name || "Us";
@@ -163,7 +93,7 @@ export default function BoxScorePage() {
               <tr className="border-b border-gray-100 dark:border-gray-800">
                 <td className="whitespace-nowrap px-2 py-1.5 text-xs font-medium uppercase tracking-wide text-gray-500">{topName}</td>
                 {topRuns.map((r, i) => {
-                  const played = game.status === "final" || game.currentInning > i + 1 || (game.currentInning === i + 1 && !game.isTopOfInning);
+                  const played = game.status === "final" || game.currentInning >= i + 1;
                   return (
                     <td
                       key={i}
@@ -256,30 +186,41 @@ export default function BoxScorePage() {
           {t("playByPlay")}
         </h3>
         <div className="space-y-1">
-          {game.atBats.map((ab: { id: string; player?: { firstName: string; lastName: string }; opponentBatter?: { name: string }; result: string; rbi: number; stolenBases: number; isTop: boolean; inning: number }) => {
-            const batterName = ab.player
-              ? `${ab.player.firstName} ${ab.player.lastName}`
-              : ab.opponentBatter?.name || t("unknown");
-            return (
-              <div
-                key={ab.id}
-                className="flex items-center justify-between rounded px-2 py-1 text-sm odd:bg-gray-50 dark:odd:bg-gray-800/50"
-              >
-                <span>
-                  <span className="font-medium">
-                    {batterName}
+          {[
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            ...game.atBats.map((ab: any) => ({ ...ab, order: ab.atBatNumberInGame })),
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            ...(game.basePlays ?? []).map((bp: any) => ({ ...bp, order: bp.sequence, isBasePlay: true })),
+          ]
+            .sort((a, b) => a.order - b.order)
+            .map((play) => {
+              const batterName = play.player
+                ? `${play.player.firstName} ${play.player.lastName}`
+                : play.opponentBatter?.name || t("unknown");
+              return (
+                <div
+                  key={play.id}
+                  className="flex items-center justify-between rounded px-2 py-1 text-sm odd:bg-gray-50 dark:odd:bg-gray-800/50"
+                >
+                  <span>
+                    {play.isBasePlay ? (
+                      <span className="italic">{BASE_PLAY_LABELS[play.type] || play.type}</span>
+                    ) : (
+                      <>
+                        <span className="font-medium">{batterName}</span>
+                        {" - "}
+                        {RESULT_LABELS[play.result] || play.result}
+                      </>
+                    )}
+                    {play.runsScored > 0 && ` (${play.runsScored} R)`}
+                    {play.rbi > 0 && ` (${play.rbi} RBI)`}
                   </span>
-                  {" - "}
-                  {RESULT_LABELS[ab.result] || ab.result}
-                  {ab.rbi > 0 && ` (${ab.rbi} RBI)`}
-                  {ab.stolenBases > 0 && ` (${ab.stolenBases} SB)`}
-                </span>
-                <span className="text-xs text-gray-400">
-                  {ab.isTop ? "T" : "B"}{ab.inning}
-                </span>
-              </div>
-            );
-          })}
+                  <span className="text-xs text-gray-400">
+                    {play.isTop ? "T" : "B"}{play.inning}
+                  </span>
+                </div>
+              );
+            })}
         </div>
       </Card>
     </div>

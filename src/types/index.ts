@@ -64,6 +64,9 @@ export interface AtBatRecord {
   atBatNumberInGame: number;
   result: string;
   rbi: number;
+  runsScored: number;
+  runnerMoves?: unknown;
+  lineupSpot?: number | null;
   runnerScored: boolean;
   stolenBases: number;
   caughtStealing: number;

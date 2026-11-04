@@ -17,6 +17,7 @@ export interface BattingStats {
   doubles: number;
   triples: number;
   homeRuns: number;
+  runs: number;
   rbi: number;
   walks: number;
   strikeouts: number;
@@ -54,7 +55,6 @@ export function calcBattingStats(
     (ab) => ab.result === "walk" || ab.result === "ibb"
   ).length;
   const hbp = atBats.filter((ab) => ab.result === "hbp").length;
-  const ci = atBats.filter((ab) => ab.result === "catchers_interference").length;
   const strikeouts = atBats.filter(
     (ab) =>
       ab.result === "strikeout_swinging" || ab.result === "strikeout_looking"
@@ -75,11 +75,11 @@ export function calcBattingStats(
   const totalBases = singles + doubles * 2 + triples * 3 + homeRuns * 4;
 
   const avg = officialAtBats > 0 ? hits / officialAtBats : 0;
-  // OBP = (H + BB + HBP + CI) / (AB + BB + HBP + SF + CI)
-  const obpDenominator = officialAtBats + walks + hbp + sacFlies + ci;
+  // OBP = (H + BB + HBP) / (AB + BB + HBP + SF). Catcher's interference counts in neither.
+  const obpDenominator = officialAtBats + walks + hbp + sacFlies;
   const obp =
     obpDenominator > 0
-      ? (hits + walks + hbp + ci) / obpDenominator
+      ? (hits + walks + hbp) / obpDenominator
       : 0;
   const slg = officialAtBats > 0 ? totalBases / officialAtBats : 0;
   const sbPct = sb + cs > 0 ? sb / (sb + cs) : 0;
@@ -93,6 +93,7 @@ export function calcBattingStats(
     doubles,
     triples,
     homeRuns,
+    runs: atBats.filter((ab) => ab.runnerScored).length,
     rbi,
     walks,
     strikeouts,
@@ -181,6 +182,8 @@ export function getOutsProduced(result: string): number {
       return 1;
     case "double_play":
       return 2;
+    case "triple_play":
+      return 3;
     default:
       return 0;
   }

@@ -32,6 +32,7 @@ const BATTING_COLUMNS: { col: keyof BattingStats; label: string; strong?: boolea
   { col: "doubles", label: "2B" },
   { col: "triples", label: "3B" },
   { col: "homeRuns", label: "HR" },
+  { col: "runs", label: "R" },
   { col: "rbi", label: "RBI", strong: true },
   { col: "walks", label: "BB" },
   { col: "strikeouts", label: "K" },

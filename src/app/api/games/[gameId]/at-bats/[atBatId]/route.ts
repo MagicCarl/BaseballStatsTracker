@@ -1,15 +1,42 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, unauthorized } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { ALL_RESULTS } from "@/lib/constants";
+import {
+  BATTER,
+  RunnerMoves,
+  checkMoves,
+  normalizeRuns,
+  replayPlays,
+  runsInMoves,
+} from "@/lib/game-state";
+import { lastPlay, loadPlays, lockGame, syncGameState } from "@/lib/game-sync";
 import { getOutsProduced } from "@/lib/stats";
 import { z } from "zod/v4";
 
 const patchAtBatSchema = z.object({
-  stolenBases: z.number().int().min(0).optional(),
-  caughtStealing: z.number().int().min(0).optional(),
-  rbi: z.number().int().min(0).optional(),
+  result: z.enum(ALL_RESULTS).optional(),
+  rbi: z.number().int().min(0).max(4).optional(),
+  runnerMoves: z
+    .record(z.string().max(64), z.union([z.literal(1), z.literal(2), z.literal(3), z.literal("home"), z.literal("out")]))
+    .optional(),
+  // At-bats saved before runners were tracked keep these as plain numbers.
+  stolenBases: z.number().int().min(0).max(3).optional(),
+  caughtStealing: z.number().int().min(0).max(3).optional(),
+  runsScored: z.number().int().min(0).max(4).optional(),
   runnerScored: z.boolean().optional(),
 });
+
+class PlayRejected extends Error {
+  constructor(message: string, public status: number) {
+    super(message);
+  }
+}
+
+const rejected = (e: unknown) => {
+  if (e instanceof PlayRejected) return NextResponse.json({ error: e.message }, { status: e.status });
+  throw e;
+};
 
 export async function PATCH(
   req: NextRequest,
@@ -25,45 +52,74 @@ export async function PATCH(
   }
   const body = parsed.data;
 
-  const game = await prisma.game.findFirst({
+  const owned = await prisma.game.findFirst({
     where: { id: gameId, team: { organization: { ownerId: user.id } } },
   });
-  if (!game) {
+  if (!owned) {
     return NextResponse.json({ error: "Game not found" }, { status: 404 });
   }
 
-  const atBat = await prisma.atBat.updateMany({
-    where: { id: atBatId, gameId },
-    data: {
-      ...(body.stolenBases !== undefined && { stolenBases: body.stolenBases }),
-      ...(body.caughtStealing !== undefined && { caughtStealing: body.caughtStealing }),
-      ...(body.rbi !== undefined && { rbi: body.rbi }),
-      ...(body.runnerScored !== undefined && { runnerScored: body.runnerScored }),
-    },
-  });
+  try {
+    await prisma.$transaction(async (tx) => {
+      const game = await lockGame(tx, gameId);
+      if (game.status === "final") throw new PlayRejected("This game has ended", 409);
 
-  if (atBat.count === 0) {
-    return NextResponse.json({ error: "At-bat not found" }, { status: 404 });
-  }
+      const existing = await tx.atBat.findFirst({ where: { id: atBatId, gameId } });
+      if (!existing) throw new PlayRejected("At-bat not found", 404);
 
-  // Recalculate game score when RBI is edited
-  if (body.rbi !== undefined) {
-    const allAtBats = await prisma.atBat.findMany({
-      where: { gameId },
-      orderBy: { atBatNumberInGame: "asc" },
+      const result = body.result ?? existing.result;
+      const { plays } = await loadPlays(tx, gameId);
+      const isLatest = lastPlay(plays)?.id === atBatId;
+      let moves = existing.runnerMoves as RunnerMoves | null;
+
+      if (moves) {
+        if (body.runnerMoves) {
+          // Later plays depend on where this one left the runners.
+          if (!isLatest) throw new PlayRejected("Undo back to this play to change its runners", 409);
+          const before = plays.filter((p) => p.id !== atBatId);
+          if (body.runnerMoves[BATTER] === undefined || checkMoves(body.runnerMoves, replayPlays(before).bases, true)) {
+            throw new PlayRejected("Those runner moves don't match who's on base", 400);
+          }
+          moves = body.runnerMoves;
+        } else if (body.result && !isLatest) {
+          // An earlier result can only change if it leaves the batter's outcome alone.
+          const wasOut = moves[BATTER] === "out";
+          if (wasOut !== getOutsProduced(result) > 0) {
+            throw new PlayRejected("Undo back to this play to change that result", 409);
+          }
+        }
+        if (result === "home_run" && moves[BATTER] !== "home") {
+          throw new PlayRejected("A home run has to score the batter", 400);
+        }
+        await tx.atBat.update({
+          where: { id: atBatId },
+          data: {
+            result,
+            runnerMoves: moves,
+            rbi: Math.min(body.rbi ?? existing.rbi, runsInMoves(moves)),
+          },
+        });
+      } else {
+        // Saved before runners were tracked, and later plays don't depend on it.
+        await tx.atBat.update({
+          where: { id: atBatId },
+          data: {
+            result,
+            stolenBases: body.stolenBases,
+            caughtStealing: body.caughtStealing,
+            ...normalizeRuns({
+              result,
+              rbi: body.rbi ?? existing.rbi,
+              runsScored: body.runsScored ?? existing.runsScored,
+              runnerScored: body.runnerScored ?? existing.runnerScored,
+            }),
+          },
+        });
+      }
+      await syncGameState(tx, gameId);
     });
-
-    let ourScore = 0;
-    let oppScore = 0;
-    for (const ab of allAtBats) {
-      if (ab.playerId) ourScore += ab.rbi;
-      else oppScore += ab.rbi;
-    }
-
-    await prisma.game.update({
-      where: { id: gameId },
-      data: { ourScore, opponentScore: oppScore },
-    });
+  } catch (e) {
+    return rejected(e);
   }
 
   return NextResponse.json({ success: true });
@@ -78,61 +134,32 @@ export async function DELETE(
 
   const { gameId, atBatId } = await params;
 
-  const game = await prisma.game.findFirst({
+  const owned = await prisma.game.findFirst({
     where: { id: gameId, team: { organization: { ownerId: user.id } } },
   });
-  if (!game) {
+  if (!owned) {
     return NextResponse.json({ error: "Game not found" }, { status: 404 });
   }
 
-  const result = await prisma.atBat.deleteMany({
-    where: { id: atBatId, gameId },
-  });
+  try {
+    await prisma.$transaction(async (tx) => {
+      const game = await lockGame(tx, gameId);
+      if (game.status === "final") throw new PlayRejected("This game has ended", 409);
 
-  if (result.count === 0) {
-    return NextResponse.json({ error: "At-bat not found" }, { status: 404 });
-  }
-
-  // Recalculate game state from all remaining at-bats
-  const remainingAtBats = await prisma.atBat.findMany({
-    where: { gameId },
-    orderBy: { atBatNumberInGame: "asc" },
-  });
-
-  let outs = 0;
-  let inning = 1;
-  let isTop = true;
-  let ourScore = 0;
-  let oppScore = 0;
-
-  for (const ab of remainingAtBats) {
-    const isOurs = !!ab.playerId;
-    // RBI counts the runs scored on this play
-    if (isOurs) ourScore += ab.rbi;
-    else oppScore += ab.rbi;
-
-    outs += getOutsProduced(ab.result);
-    if (outs >= 3) {
-      outs = 0;
-      if (isTop) {
-        isTop = false;
-      } else {
-        isTop = true;
-        inning += 1;
+      const { plays } = await loadPlays(tx, gameId);
+      if (!plays.some((p) => p.id === atBatId && p.kind === "at_bat")) {
+        throw new PlayRejected("At-bat not found", 404);
       }
-    }
-  }
+      if (lastPlay(plays)?.id !== atBatId) {
+        throw new PlayRejected("Only the latest play can be undone", 409);
+      }
 
-  await prisma.game.update({
-    where: { id: gameId },
-    data: {
-      outsInCurrentInning: outs,
-      currentInning: inning,
-      isTopOfInning: isTop,
-      ourScore,
-      opponentScore: oppScore,
-    },
-  });
+      await tx.atBat.delete({ where: { id: atBatId } });
+      await syncGameState(tx, gameId);
+    });
+  } catch (e) {
+    return rejected(e);
+  }
 
   return NextResponse.json({ success: true });
 }

@@ -93,7 +93,11 @@ export async function GET(
 
   // Team totals run the same formulas over every at-bat, so rate stats are
   // weighted correctly instead of averaged across players.
-  const allTeamAtBats = playerResults.flatMap((r) => r.atBats);
+  // That includes players who have since been removed from the roster.
+  const allTeamAtBats = await prisma.atBat.findMany({
+    where: { ...atBatWhere, playerId: { not: null } },
+    select: { result: true, rbi: true, stolenBases: true, caughtStealing: true, runnerScored: true, gameId: true },
+  });
   const teamTotals = calcBattingStats(
     allTeamAtBats,
     new Set(allTeamAtBats.map((ab) => ab.gameId)).size

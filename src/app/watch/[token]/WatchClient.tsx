@@ -4,13 +4,20 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import Card from "@/components/ui/Card";
 import Spinner from "@/components/ui/Spinner";
-import { RESULT_LABELS, AT_BAT_RESULTS } from "@/lib/constants";
+import { RESULT_LABELS } from "@/lib/constants";
+import { buildPlays, replayPlays } from "@/lib/game-state";
+import BaseDiamond from "@/components/game/BaseDiamond";
+import { buildBoxScore } from "@/lib/box-score";
 
 interface WatchAtBat {
   id: string;
   playerId: string | null;
   result: string;
   rbi: number;
+  runsScored: number;
+  runnerMoves: unknown;
+  atBatNumberInGame: number;
+  caughtStealing: number;
   stolenBases: number;
   runnerScored: boolean;
   inning: number;
@@ -29,24 +36,24 @@ interface WatchGame {
   opponentScore: number;
   currentInning: number;
   isTopOfInning: boolean;
+  outsInCurrentInning: number;
+  basePlays: {
+    id: string;
+    sequence: number;
+    isOurTeam: boolean;
+    inning: number;
+    runnerMoves: unknown;
+    type: string;
+    extraOuts: number;
+    extraRuns: number;
+    runsScored: number;
+  }[];
   team: { name: string };
   lineupEntries: {
     battingOrder: number;
     player: { id: string; firstName: string; lastName: string };
   }[];
   atBats: WatchAtBat[];
-}
-
-interface PlayerBoxLine {
-  name: string;
-  ab: number;
-  hits: number;
-  runs: number;
-  rbi: number;
-  bb: number;
-  k: number;
-  sb: number;
-  avg: string;
 }
 
 const TERMINAL_STATUSES = ["completed", "cancelled", "final"];
@@ -109,61 +116,13 @@ export default function WatchClient({ token }: { token: string }) {
 
   const isFinal = TERMINAL_STATUSES.includes(game.status);
 
-  // Box score lines per player (same math as the box score page)
-  const playerMap = new Map<string, PlayerBoxLine>();
-  for (const entry of game.lineupEntries) {
-    const p = entry.player;
-    playerMap.set(p.id, {
-      name: `${p.firstName} ${p.lastName}`,
-      ab: 0, hits: 0, runs: 0, rbi: 0, bb: 0, k: 0, sb: 0, avg: ".000",
-    });
-  }
-  for (const ab of game.atBats) {
-    if (!ab.playerId) continue;
-    const line = playerMap.get(ab.playerId);
-    if (!line) continue;
+  const { boxLines, innings, ourRunsByInning, oppRunsByInning, ourHits, oppHits, ourErrors, oppErrors } = buildBoxScore(game);
 
-    const isHit = (AT_BAT_RESULTS.hits as readonly string[]).includes(ab.result);
-    const isWalk = ab.result === "walk" || ab.result === "hbp" || ab.result === "ibb";
-    const isK = ab.result === "strikeout_swinging" || ab.result === "strikeout_looking";
-    const isSac = ab.result === "sacrifice_fly" || ab.result === "sacrifice_bunt";
-
-    if (!isWalk && !isSac) line.ab++;
-    if (isHit) line.hits++;
-    if (ab.runnerScored) line.runs++;
-    line.rbi += ab.rbi;
-    if (isWalk) line.bb++;
-    if (isK) line.k++;
-    line.sb += ab.stolenBases;
-    line.avg = line.ab > 0 ? (line.hits / line.ab).toFixed(3).replace(/^0/, "") : ".000";
-  }
-  const boxLines = Array.from(playerMap.values());
-
-  // Inning-by-inning scoreboard
-  const innings = game.inningsCount || 6;
-  const ourRunsByInning: number[] = Array(innings).fill(0);
-  const oppRunsByInning: number[] = Array(innings).fill(0);
-  let ourHits = 0;
-  let oppHits = 0;
-  let ourErrors = 0;
-  let oppErrors = 0;
-
-  for (const ab of game.atBats) {
-    const inningIdx = Math.min(ab.inning - 1, innings - 1);
-    const isOurBatting = !!ab.playerId;
-    const isHit = (AT_BAT_RESULTS.hits as readonly string[]).includes(ab.result);
-    const isError = ab.result === "error";
-
-    if (isOurBatting) {
-      if (ab.runnerScored) ourRunsByInning[inningIdx]++;
-      if (isHit) ourHits++;
-      if (isError) oppErrors++;
-    } else {
-      if (ab.runnerScored) oppRunsByInning[inningIdx]++;
-      if (isHit) oppHits++;
-      if (isError) ourErrors++;
-    }
-  }
+  const { bases } = replayPlays(buildPlays(game.atBats, game.basePlays));
+  const runnerName = (id: string) => {
+    const ab = game.atBats.find((a) => a.id === id);
+    return ab?.player ? `${ab.player.firstName} ${ab.player.lastName}` : ab?.opponentBatter?.name || "";
+  };
 
   const ourTeamName = game.team?.name || "Us";
   const oppTeamName = game.opponentName;
@@ -198,12 +157,21 @@ export default function WatchClient({ token }: { token: string }) {
           </h1>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
             {new Date(game.gameDate).toLocaleDateString(undefined, {
-              weekday: "long", month: "long", day: "numeric",
+              weekday: "long", month: "long", day: "numeric", timeZone: "UTC",
             })}
             {!isFinal &&
               ` · ${game.isTopOfInning ? "Top" : "Bottom"} of inning ${game.currentInning}`}
           </p>
         </div>
+
+        {!isFinal && (
+          <Card>
+            <BaseDiamond bases={bases} nameFor={runnerName} />
+            <p className="mt-2 text-center text-xs text-gray-500">
+              {game.outsInCurrentInning} {game.outsInCurrentInning === 1 ? "out" : "outs"}
+            </p>
+          </Card>
+        )}
 
         {/* Inning-by-inning scoreboard */}
         <Card>
@@ -231,7 +199,7 @@ export default function WatchClient({ token }: { token: string }) {
                 <tr className="border-b border-gray-100 dark:border-gray-800">
                   <td className="whitespace-nowrap px-2 py-1.5 text-xs font-medium uppercase tracking-wide text-gray-500">{topName}</td>
                   {topRuns.map((r, i) => {
-                    const played = isFinal || game.currentInning > i + 1 || (game.currentInning === i + 1 && !game.isTopOfInning);
+                    const played = isFinal || game.currentInning >= i + 1;
                     return (
                       <td key={i} className={`px-1.5 py-1.5 text-center ${game.currentInning === i + 1 && !isFinal ? "font-bold text-blue-500" : ""}`}>
                         {played ? r : "—"}
@@ -325,6 +293,7 @@ export default function WatchClient({ token }: { token: string }) {
                       <span className="font-medium">{batterName}</span>
                       {" - "}
                       {RESULT_LABELS[ab.result] || ab.result}
+                      {ab.runsScored > 0 && ` (${ab.runsScored} R)`}
                       {ab.rbi > 0 && ` (${ab.rbi} RBI)`}
                       {ab.stolenBases > 0 && ` (${ab.stolenBases} SB)`}
                     </span>

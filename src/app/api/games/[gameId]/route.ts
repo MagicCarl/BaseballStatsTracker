@@ -4,11 +4,12 @@ import { prisma } from "@/lib/prisma";
 import { z } from "zod/v4";
 
 const updateGameSchema = z.object({
-  status: z.enum(["scheduled", "in_progress", "completed", "cancelled"]).optional(),
+  status: z.enum(["scheduled", "in_progress", "final", "completed", "cancelled"]).optional(),
   ourScore: z.number().int().min(0).optional(),
   opponentScore: z.number().int().min(0).optional(),
   currentInning: z.number().int().min(1).optional(),
   isTopOfInning: z.boolean().optional(),
+  isHome: z.boolean().optional(),
   outsInCurrentInning: z.number().int().min(0).max(3).optional(),
   notes: z.string().max(1000).nullable().optional(),
 });
@@ -49,6 +50,9 @@ export async function GET(
       opponentBatters: {
         orderBy: { orderInGame: "asc" },
       },
+      basePlays: {
+        orderBy: { sequence: "asc" },
+      },
     },
   });
 
@@ -83,6 +87,7 @@ export async function PUT(
       opponentScore: body.opponentScore,
       currentInning: body.currentInning,
       isTopOfInning: body.isTopOfInning,
+      isHome: body.isHome,
       outsInCurrentInning: body.outsInCurrentInning,
       notes: body.notes,
     },

@@ -157,6 +157,7 @@ model Game {
   pitchingAppearances PitchingAppearance[]
   opponentPitchers OpponentPitcher[]
   opponentBatters  OpponentBatter[]
+  basePlays        BasePlay[]
 
   @@map("games")
 }
@@ -224,6 +225,9 @@ model AtBat {
   atBatNumberInGame Int      @map("at_bat_number_in_game")
   result            String
   rbi               Int      @default(0)
+  runsScored        Int      @default(0) @map("runs_scored")
+  runnerMoves       Json?    @map("runner_moves")
+  lineupSpot        Int?     @map("lineup_spot")
   runnerScored      Boolean  @default(false) @map("runner_scored")
   pitchCount        Int?     @map("pitch_count")
   stolenBases       Int      @default(0) @map("stolen_bases")
@@ -243,6 +247,27 @@ model AtBat {
 }
 
 // ============ PITCH ============
+
+// Something that moved runners without finishing an at-bat: a steal, wild pitch, etc.
+model BasePlay {
+  id          String   @id @default(cuid())
+  gameId      String   @map("game_id")
+  sequence    Int
+  inning      Int
+  isTop       Boolean  @map("is_top")
+  isOurTeam   Boolean  @map("is_our_team")
+  type        String
+  runnerMoves Json     @map("runner_moves")
+  extraOuts   Int      @default(0) @map("extra_outs")
+  extraRuns   Int      @default(0) @map("extra_runs")
+  runsScored  Int      @default(0) @map("runs_scored")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  game Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  @@index([gameId])
+  @@map("base_plays")
+}
 
 model Pitch {
   id          String   @id @default(cuid())

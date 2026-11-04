@@ -13,6 +13,11 @@ import Select from "@/components/ui/Select";
 import Card from "@/components/ui/Card";
 import BuyButton from "@/components/ui/BuyButton";
 
+function localDateString(d: Date) {
+  const pad = (x: number) => String(x).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
 export default function NewGamePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -28,7 +33,7 @@ export default function NewGamePage() {
     teamId: teamId || "",
     seasonId: "",
     opponentName: "",
-    gameDate: new Date().toISOString().split("T")[0],
+    gameDate: localDateString(new Date()),
     gameTime: "",
     location: "",
     isHome: true,
@@ -133,6 +138,7 @@ export default function NewGamePage() {
                 setForm({
                   ...form,
                   teamId: e.target.value,
+                  seasonId: "",
                   inningsCount:
                     teams.find((tm) => tm.id === e.target.value)?.defaultInnings ?? form.inningsCount,
                 })
