@@ -9,6 +9,7 @@ const testimonials: {
     quote:
       "Thx so much, I love your program. I studied a lot of options to score the games. We started a new youth league and will offer very reasonable participation fees. We aim to extend your generosity, with some of our own, to those less fortunate. Play ball.",
     name: "Brent",
+    role: "Youth league founder",
   },
   {
     quote: "A refreshing change from the usual subscription fatigue",
